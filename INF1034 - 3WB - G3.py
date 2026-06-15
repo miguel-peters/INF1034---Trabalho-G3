@@ -1,11 +1,14 @@
 from pygame import *
 import sys
 
+import random
+
 clock = time.Clock()
 init()
 screen = display.set_mode((800, 600))
 running = True
 tile_size = 16
+tam = 30
 
 # --- imagens ---
 # fundos 
@@ -150,6 +153,75 @@ for i in range(6):
     ship_animation_L.append(imagem_ship_L)
 esquerda = False
 
+
+
+#classe de npc
+ship_normal = []
+ship_vermelho = []
+
+for i in range(4):
+    ship_normal.append(transform.scale(image.load(f"INF1034---Trabalho-G3/red_ship1/ship0{i+5}.png"), (40, 40)))
+    ship_vermelho.append(transform.scale(image.load(f"INF1034---Trabalho-G3/red_ship2/ship0{i+5}.png"), (40, 40)))
+
+opcoes_de_cores = [ship_normal, ship_vermelho]
+
+class naveNPC:
+    def __init__(self, limite_x, chao_y, opcoes_de_cores):
+        #posição inicial na tela
+        self.x = random.randint(700, 790)
+        self.y = random.randint(50, 550)
+        # comeca andando para a esquerda (-2) ou direita (2)
+        self.velocidade_x = random.choice([-3,-2, 2, 3])
+        self.velocidade_y = random.choice([-3, -2, 2, 3])
+        
+        self.frame_atual = random.randint(0, 10) #cada dinossauro começa em frames diferentes xd
+        self.tempo_animacao = 0
+
+        self.minha_animacao = random.choice(opcoes_de_cores)
+
+        self.ship_hitbox = Rect(self.x, self.y, tam+10, tam+10)
+
+    def atualizar_e_desenhar(self, tela, dt, lista_animacao):
+        #movimento
+        self.x = self.x + self.velocidade_x
+        self.y = self.y + self.velocidade_y
+
+        self.ship_hitbox.x = self.x
+        self.ship_hitbox.y = self.y
+
+        #bater na parede e virar
+        if self.x <= -20 or self.x >= 790:
+            self.velocidade_x = self.velocidade_x * -1
+        if self.y <= -20 or self.y >= 570:
+            self.velocidade_y = self.velocidade_y * -1
+
+        #tempo da Animação
+        self.tempo_animacao += dt
+        if self.tempo_animacao > 80: # 80 milissegundos para trocar de frame
+            self.frame_atual += 1
+            if self.frame_atual >= len(lista_animacao):
+                self.frame_atual = 0
+            self.tempo_animacao = 0
+
+        #desenho
+        imagem_atual = lista_animacao[self.frame_atual]
+        
+        # se velocidade for negativa (esquerda), espelha a imagem
+        if self.velocidade_x < 0:
+            imagem_atual = transform.flip(imagem_atual, True, False)
+            
+        tela.blit(imagem_atual, (self.x, self.y))
+        draw.rect(tela, (255, 0, 0), self.ship_hitbox, 2)
+
+bando_de_naves = []
+#range = quantas naves tem
+
+for i in range(10): # Pode colocar 10, 20...
+    # Passamos as opções de cores para ele sortear quando nascer
+    nova_nave = naveNPC(800, 0, opcoes_de_cores)
+    bando_de_naves.append(nova_nave)
+
+
 while running:
     for ev in event.get():
         if ev.type == QUIT:
@@ -244,7 +316,8 @@ while running:
     screen.blit(texto4, (25, 480))
     screen.blit(texto5, (25, 500))
 
-
+    for nave in bando_de_naves:
+        nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
     if direita:
         screen.blit(ship_animation_R[current_frame_R], (100,200), (0,0,106,54))
     elif esquerda:
