@@ -140,7 +140,7 @@ anim_time_R = 0
 ship_animation_R = []
 for i in range(6):
     imagem_ship_R = image.load(f'INF1034---Trabalho-G3/Right/ship{i}.png')
-    imagem_ship_R = transform.scale(imagem_ship_R, (106, 54))
+    imagem_ship_R = transform.scale(imagem_ship_R, (79.5, 40.5))
     ship_animation_R.append(imagem_ship_R)
 direita = True
 
@@ -149,7 +149,7 @@ anim_time_L = 0
 ship_animation_L = []
 for i in range(6):
     imagem_ship_L = image.load(f'INF1034---Trabalho-G3/Left/ship{i}.png')
-    imagem_ship_L = transform.scale(imagem_ship_L, (106, 54))
+    imagem_ship_L = transform.scale(imagem_ship_L, (79.5, 40.5))
     ship_animation_L.append(imagem_ship_L)
 esquerda = False
 
@@ -319,8 +319,8 @@ while running:
     for nave in bando_de_naves:
         nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
     if direita:
-        screen.blit(ship_animation_R[current_frame_R], (100,200), (0,0,106,54))
+        screen.blit(ship_animation_R[current_frame_R], (100,200), (0,0,79.5,40.5))
     elif esquerda:
-        screen.blit(ship_animation_L[current_frame_L], (300,200), (0,0,106,54))
+        screen.blit(ship_animation_L[current_frame_L], (300,200), (0,0,79.5,40.5))
 
     display.update()
