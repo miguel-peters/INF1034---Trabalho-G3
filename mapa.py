@@ -31,7 +31,7 @@ tiles_img = {
     'ps': ps,   # planeta pequeno
 }
 
-# mapa de fundo (camada 1) — cobre a tela inteira (50x37 tiles de 16px = 800x592)
+# mapa de fundo (camada 1) - cobre a tela inteira
 mapa = [
     'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
     'bb,bs,bb,bb,bs,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb',
