@@ -10,18 +10,18 @@ tile_size = 16
 
 # --- imagens ---
 # fundos 
-bb = pygame.transform.scale(pygame.image.load('background/blue-back.png'), (tile_size, tile_size))
-bs = pygame.transform.scale(pygame.image.load('background/blue-stars.png'), (tile_size, tile_size))
-bw = pygame.transform.scale(pygame.image.load('background/blue-with-stars.png'), (tile_size, tile_size))
+bb = pygame.transform.scale(pygame.image.load('INF1034---Trabalho-G3/background/blue-back.png'), (tile_size, tile_size))
+bs = pygame.transform.scale(pygame.image.load('INF1034---Trabalho-G3/background/blue-stars.png'), (tile_size, tile_size))
+bw = pygame.transform.scale(pygame.image.load('INF1034---Trabalho-G3/background/blue-with-stars.png'), (tile_size, tile_size))
 
 # tile de asteroide 
-a2 = pygame.transform.scale(pygame.image.load('background/asteroid-2.png'), (tile_size, tile_size))
+a2 = pygame.transform.scale(pygame.image.load('INF1034---Trabalho-G3/background/asteroid-2.png'), (tile_size, tile_size))
 
 # planeta pequeno 
-ps = pygame.image.load('background/prop-planet-small.png')
+ps = pygame.image.load('INF1034---Trabalho-G3/background/prop-planet-small.png')
 
 # planeta grande 
-pb = pygame.image.load('background/prop-planet-big.png')
+pb = pygame.image.load('INF1034---Trabalho-G3/background/prop-planet-big.png')
 
 tiles_img = {
     'bb': bb,   # fundo azul escuro

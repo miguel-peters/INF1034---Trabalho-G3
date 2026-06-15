@@ -9,10 +9,10 @@ display.set_caption('Hello world')
 clock = time.Clock()
 
 # fonte do texto
-fonte = font.Font('texto.ttf', 10)
+fonte = font.Font('INF1034---Trabalho-G3/texto.ttf', 10)
 
 # imagem de coraçao do lado da vida
-vida = image.load('vida.png')
+vida = image.load('INF1034---Trabalho-G3/vida.png')
 life = 3
 
 while True:
