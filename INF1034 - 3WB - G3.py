@@ -7,6 +7,7 @@ clock = time.Clock()
 init()
 screen = display.set_mode((800, 600))
 running = True
+tempo_inicial = time.get_ticks()
 tile_size = 16
 tam = 30
 
@@ -129,7 +130,7 @@ planetas_grandes = [
 ]
 
 # fonte do texto
-fonte = font.Font('INF1034---Trabalho-G3/texto.ttf', 10)
+fonteLAY = font.Font('INF1034---Trabalho-G3/texto.ttf', 10)
 
 # imagem de coraçao do lado da vida
 vida = image.load('INF1034---Trabalho-G3/vida.png')
@@ -137,6 +138,8 @@ life = 3
 
 current_frame_R = 0
 anim_time_R = 0
+pos_x = 100
+pos_y = 200
 ship_animation_R = []
 for i in range(6):
     imagem_ship_R = image.load(f'INF1034---Trabalho-G3/Right/ship{i}.png')
@@ -221,6 +224,9 @@ for i in range(10): # Pode colocar 10, 20...
     nova_nave = naveNPC(800, 0, opcoes_de_cores)
     bando_de_naves.append(nova_nave)
 
+#CONTADOR 
+
+fonte = font.Font(None, 30)
 
 while running:
     for ev in event.get():
@@ -232,12 +238,21 @@ while running:
     dt = clock.get_time()
     keys = key.get_pressed()
 
+    tempo_atual = time.get_ticks()
+    tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
+
     if keys[K_a]:
         esquerda = True
         direita = False
+        pos_x -= 0.3*dt
     elif keys[K_d]:
         direita = True
         esquerda = False
+        pos_x += 0.3*dt
+    elif keys[K_w]:
+        pos_y -= 0.3*dt
+    elif keys[K_s]:
+        pos_y += 0.3*dt
 
     anim_time_R += dt
     anim_time_sec_R = anim_time_R/1000
@@ -303,12 +318,12 @@ while running:
         draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
 
     # colocar os textos
-    texto1 = fonte.render('A - esquerda', True, (255, 255, 255))
-    texto2 = fonte.render('D - direita', True, (255, 255, 255))
-    texto3 = fonte.render('w - cima', True, (255, 255, 255))
-    texto4 = fonte.render('S - baixo', True, (255, 255, 255))
+    texto1 = fonteLAY.render('A - esquerda', True, (255, 255, 255))
+    texto2 = fonteLAY.render('D - direita', True, (255, 255, 255))
+    texto3 = fonteLAY.render('w - cima', True, (255, 255, 255))
+    texto4 = fonteLAY.render('S - baixo', True, (255, 255, 255))
     # botei o espaco para dash mas n sei qual vms usar, ent da pra trocar
-    texto5 = fonte.render('SPACE - dash', True, (255, 255, 255))
+    texto5 = fonteLAY.render('SPACE - dash', True, (255, 255, 255))
 
     screen.blit(texto1, (25, 420))
     screen.blit(texto2, (25, 440))
@@ -319,8 +334,14 @@ while running:
     for nave in bando_de_naves:
         nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
     if direita:
-        screen.blit(ship_animation_R[current_frame_R], (100,200), (0,0,79.5,40.5))
+        screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
     elif esquerda:
-        screen.blit(ship_animation_L[current_frame_L], (300,200), (0,0,79.5,40.5))
+        screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
+
+
+    # CONTADOR
+    texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
+    screen.blit(texto, (630,20))
+
 
     display.update()
