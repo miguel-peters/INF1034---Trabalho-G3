@@ -11,6 +11,8 @@ tempo_inicial = time.get_ticks()
 tile_size = 16
 tam = 30
 
+vel_ast = 3
+
 # --- imagens ---
 # fundos 
 bb = transform.scale(image.load('INF1034---Trabalho-G3/background/blue-back.png'), (tile_size, tile_size))
@@ -25,6 +27,12 @@ ps = image.load('INF1034---Trabalho-G3/background/prop-planet-small.png')
 
 # planeta grande 
 pb = image.load('INF1034---Trabalho-G3/background/prop-planet-big.png')
+
+#coisa voando
+asteroide = transform.scale(image.load('background/asteroid-2.png'), (50, 50))
+
+#fundo
+imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
 
 tiles_img = {
     'bb': bb,   # fundo azul escuro
@@ -272,7 +280,18 @@ while running:
             current_frame_L = 0
         anim_time_sec_L = 0
 
-    screen.fill((10,10,30))
+    screen.blit(imagem_ceu, (0, 0))
+
+
+    for i in range(4):
+        y_ast = random.randint(100,600)
+        x_ast = random.randint(100,800)
+        screen.blit(asteroide, (x_ast, y_ast))
+        if x_ast < -150:
+            x_ast = 800
+
+    #nuvem
+    x_ast += -vel_ast
 
     # camada 1 — fundo de espaço
     for i in range(len(mapa)):
