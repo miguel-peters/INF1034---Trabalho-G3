@@ -16,8 +16,13 @@ modo_invencivel = True
 tempo_invencivel = 2000
 
 #sons
+mixer.music.load("musica.mp3")
+
+mixer.music.play(-1)
+
 som_dano = mixer.Sound('mario-power-down.mp3')
 som_morte = mixer.Sound('roblox-explosion-sound.mp3')
+som_imortal = mixer.Sound('imortal.mp3')
 
 #explosao
 animacao_explosao = []
@@ -387,9 +392,8 @@ while running:
     draw.rect(screen, (0, 255, 0), player_hitbox, 2)
 
 
-    if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != -1 and not modo_invencivel:
-        if life > 0:
-            life -= 1
+    if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != 0 and not modo_invencivel:
+        life -= 1
         if life == 1 or life == 2:
             som_dano.play()
         if life == 0:
@@ -410,9 +414,11 @@ while running:
         tempo_invencivel -= dt
         if tempo_invencivel <= 0:
             modo_invencivel = False
+            som_imortal.play()
 
 
-    if not modo_invencivel or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0) and life!=0:
+
+    if ((not modo_invencivel) or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0)) and life != 0:
         if direita:
             screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
         elif esquerda:
@@ -429,7 +435,7 @@ while running:
         screen.blit(animacao_explosao[exp['frame']], (exp['x'], exp['y']))
         
         exp['tempo'] += dt
-        if exp['tempo'] > 50:
+        if exp['tempo'] > 150:  # tempo entre frames da explosão
             exp['frame'] += 1
             exp['tempo'] = 0
             
