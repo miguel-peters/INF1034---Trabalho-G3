@@ -11,28 +11,51 @@ tempo_inicial = time.get_ticks()
 tile_size = 16
 tam = 30
 
-vel_ast = 3
+vel_ast = 2
+modo_invencivel = True
+tempo_invencivel = 2000
+
+#sons
+som_dano = mixer.Sound('mario-power-down.mp3')
+som_morte = mixer.Sound('roblox-explosion-sound.mp3')
+
+#explosao
+animacao_explosao = []
+for i in range(8):
+    img_exp = image.load(f'kaboom/explosion{i+1}.png')
+    img_exp = transform.scale(img_exp, (100, 100))
+    animacao_explosao.append(img_exp)
+
+explosoes_ativas = []
 
 # --- imagens ---
 # fundos 
-bb = transform.scale(image.load('INF1034---Trabalho-G3/background/blue-back.png'), (tile_size, tile_size))
-bs = transform.scale(image.load('INF1034---Trabalho-G3/background/blue-stars.png'), (tile_size, tile_size))
-bw = transform.scale(image.load('INF1034---Trabalho-G3/background/blue-with-stars.png'), (tile_size, tile_size))
+bb = transform.scale(image.load('background/blue-back.png'), (tile_size, tile_size))
+bs = transform.scale(image.load('background/blue-stars.png'), (tile_size, tile_size))
+bw = transform.scale(image.load('background/blue-with-stars.png'), (tile_size, tile_size))
 
 # tile de asteroide 
-a2 = transform.scale(image.load('INF1034---Trabalho-G3/background/asteroid-2.png'), (tile_size, tile_size))
+a2 = transform.scale(image.load('background/asteroid-2.png'), (tile_size, tile_size))
 
 # planeta pequeno 
-ps = image.load('INF1034---Trabalho-G3/background/prop-planet-small.png')
+ps = image.load('background/prop-planet-small.png')
 
 # planeta grande 
-pb = image.load('INF1034---Trabalho-G3/background/prop-planet-big.png')
+pb = image.load('background/prop-planet-big.png')
 
 #coisa voando
 asteroide = transform.scale(image.load('background/asteroid-2.png'), (50, 50))
 
 #fundo
 imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
+
+#asteroides grandoes aleatorios
+lista_asteroides = []
+for i in range(4):
+    x_inicial = random.randint(0, 800)
+    y_inicial = random.randint(0, 550)
+    lista_asteroides.append([x_inicial, y_inicial])
+
 
 tiles_img = {
     'bb': bb,   # fundo azul escuro
@@ -85,7 +108,7 @@ mapa = [
 
 # mapa de props (camada 2) — asteroides e planetas pequenos por cima do fundo
 mapa2 = [
-    ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ',
+    ' , , , , , , , , a2 , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ',
     ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , ,a2, , , , , , , , , , , , , , , , , , , , ',
     ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ',
     ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ',
@@ -138,10 +161,10 @@ planetas_grandes = [
 ]
 
 # fonte do texto
-fonteLAY = font.Font('INF1034---Trabalho-G3/texto.ttf', 10)
+fonteLAY = font.Font('texto.ttf', 10)
 
 # imagem de coraçao do lado da vida
-vida = image.load('INF1034---Trabalho-G3/vida.png')
+vida = image.load('vida.png')
 life = 3
 
 current_frame_R = 0
@@ -150,7 +173,7 @@ pos_x = 100
 pos_y = 200
 ship_animation_R = []
 for i in range(6):
-    imagem_ship_R = image.load(f'INF1034---Trabalho-G3/Right/ship{i}.png')
+    imagem_ship_R = image.load(f'Right/ship{i}.png')
     imagem_ship_R = transform.scale(imagem_ship_R, (79.5, 40.5))
     ship_animation_R.append(imagem_ship_R)
 direita = True
@@ -159,7 +182,7 @@ current_frame_L = 0
 anim_time_L = 0
 ship_animation_L = []
 for i in range(6):
-    imagem_ship_L = image.load(f'INF1034---Trabalho-G3/Left/ship{i}.png')
+    imagem_ship_L = image.load(f'Left/ship{i}.png')
     imagem_ship_L = transform.scale(imagem_ship_L, (79.5, 40.5))
     ship_animation_L.append(imagem_ship_L)
 esquerda = False
@@ -171,8 +194,8 @@ ship_normal = []
 ship_vermelho = []
 
 for i in range(4):
-    ship_normal.append(transform.scale(image.load(f"INF1034---Trabalho-G3/red_ship1/ship0{i+5}.png"), (40, 40)))
-    ship_vermelho.append(transform.scale(image.load(f"INF1034---Trabalho-G3/red_ship2/ship0{i+5}.png"), (40, 40)))
+    ship_normal.append(transform.scale(image.load(f"red_ship1/ship0{i+5}.png"), (40, 40)))
+    ship_vermelho.append(transform.scale(image.load(f"red_ship2/ship0{i+5}.png"), (40, 40)))
 
 opcoes_de_cores = [ship_normal, ship_vermelho]
 
@@ -249,18 +272,21 @@ while running:
     tempo_atual = time.get_ticks()
     tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
 
-    if keys[K_a]:
+    if keys[K_a] and life!=0 and pos_x > 0:
         esquerda = True
         direita = False
         pos_x -= 0.3*dt
-    elif keys[K_d]:
+    elif keys[K_d] and life!=0 and pos_x < 720:
         direita = True
         esquerda = False
         pos_x += 0.3*dt
-    elif keys[K_w]:
+    
+    if keys[K_w] and life!=0 and pos_y > 0:
         pos_y -= 0.3*dt
-    elif keys[K_s]:
+    elif keys[K_s] and life!=0 and pos_y < 560:
         pos_y += 0.3*dt
+
+
 
     anim_time_R += dt
     anim_time_sec_R = anim_time_R/1000
@@ -282,24 +308,24 @@ while running:
 
     screen.blit(imagem_ceu, (0, 0))
 
+    hitboxes_inimigas = []
 
-    for i in range(4):
-        y_ast = random.randint(100,600)
-        x_ast = random.randint(100,800)
-        screen.blit(asteroide, (x_ast, y_ast))
-        if x_ast < -150:
-            x_ast = 800
+    #asteroides
+    for ast in lista_asteroides:
+        ast[0] -= vel_ast 
+        
+        screen.blit(asteroide, (ast[0], ast[1]))
+        raio = tam-5
+        centro_x = int(ast[0] + raio)
+        centro_y = int(ast[1] + raio)
+        ast_hitbox = draw.circle(screen, (255, 0, 0), (centro_x, centro_y), raio, 2)
+        hitboxes_inimigas.append(ast_hitbox)
+        if ast[0] < -150:
+            ast[0] = 800
+            ast[1] = random.randint(0, 550)
+    
 
-    #nuvem
-    x_ast += -vel_ast
 
-    # camada 1 — fundo de espaço
-    for i in range(len(mapa)):
-        tiles = mapa[i].split(',')
-        for j in range(len(tiles)):
-            tile = tiles[j]
-            if tile in tiles_img:
-                screen.blit(tiles_img[tile], (offset_x + j * tile_size, offset_y + i * tile_size))
 
     # planetas grandes como props (igual às árvores no jogo 1)
     for px, py in planetas_grandes:
@@ -350,17 +376,67 @@ while running:
     screen.blit(texto4, (25, 480))
     screen.blit(texto5, (25, 500))
 
+
     for nave in bando_de_naves:
         nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
-    if direita:
-        screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
-    elif esquerda:
-        screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
+        hitboxes_inimigas.append(nave.ship_hitbox)
+
+
+
+    player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
+    draw.rect(screen, (0, 255, 0), player_hitbox, 2)
+
+
+    if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != -1 and not modo_invencivel:
+        if life > 0:
+            life -= 1
+        if life == 1 or life == 2:
+            som_dano.play()
+        if life == 0:
+            som_morte.play()
+            nova_explosao = {
+                'x': pos_x-10,
+                'y': pos_y-20,
+                'frame': 0,
+                'tempo': 0
+            }
+            explosoes_ativas.append(nova_explosao)
+            
+        modo_invencivel = True
+        tempo_invencivel = 3000
+
+
+    if modo_invencivel:
+        tempo_invencivel -= dt
+        if tempo_invencivel <= 0:
+            modo_invencivel = False
+
+
+    if not modo_invencivel or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0) and life!=0:
+        if direita:
+            screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
+        elif esquerda:
+            screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
 
 
     # CONTADOR
     texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
     screen.blit(texto, (630,20))
 
+    explosoes_para_remover = [] 
+
+    for exp in explosoes_ativas:
+        screen.blit(animacao_explosao[exp['frame']], (exp['x'], exp['y']))
+        
+        exp['tempo'] += dt
+        if exp['tempo'] > 50:
+            exp['frame'] += 1
+            exp['tempo'] = 0
+            
+            if exp['frame'] >= len(animacao_explosao):
+                explosoes_para_remover.append(exp)
+
+    for exp in explosoes_para_remover:
+        explosoes_ativas.remove(exp)
 
     display.update()
