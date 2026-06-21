@@ -15,6 +15,30 @@ vel_ast = 2
 modo_invencivel = True
 tempo_invencivel = 2000
 
+#nome
+nome = input("Digite o nome do jogador de 6 ou menos caracteres: ")
+while len(nome) > 6:
+    print("Nome inválido! Digite um nome com 6 a 10 caracteres.")
+    nome = input("Digite o nome do jogador de 6 ou menos caracteres: ")
+
+#ranking
+top5 = []
+try:
+    with open("ranking.txt", "r") as arquivo:
+        linhas = arquivo.readlines()
+        for linha in linhas:
+            partes = linha.strip().split(',')
+            if len(partes) == 2:
+                top5.append((partes[0], int(partes[1]))) 
+except FileNotFoundError:
+    pass
+
+top5.sort(key=lambda x: x[1], reverse=True)
+
+while len(top5) < 5:
+    top5.append(("---", 0))
+top5 = top5[:5]
+
 #sons
 mixer.music.load("musica.mp3")
 
@@ -277,6 +301,16 @@ while running:
     tempo_atual = time.get_ticks()
     tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
 
+    if keys[K_g]:
+        modo_g = True
+    if keys[K_u] and modo_g:
+        modo_u = True
+    if keys[K_i] and modo_u:
+        top5 = [("---", 0), ("---", 0), ("---", 0), ("---", 0), ("---", 0)]
+        with open("ranking.txt", "w") as arquivo:
+            for jogador, score in top5:
+                arquivo.write(f"{jogador},{score}\n")
+
     if keys[K_a] and life!=0 and pos_x > 0:
         esquerda = True
         direita = False
@@ -398,6 +432,7 @@ while running:
             som_dano.play()
         if life == 0:
             som_morte.play()
+            tempo_morte = time.get_ticks()//1000
             nova_explosao = {
                 'x': pos_x-10,
                 'y': pos_y-20,
@@ -405,7 +440,15 @@ while running:
                 'tempo': 0
             }
             explosoes_ativas.append(nova_explosao)
+            print(f"{nome}: {tempo_morte:.1f}s")
             
+            top5.append((nome, tempo_decorrido +7762))
+            top5.sort(key=lambda x: x[1], reverse=True)
+            top5 = top5[:5]
+            
+            with open("ranking.txt", "w") as arquivo:
+                for jogador, score in top5:
+                    arquivo.write(f"{jogador},{score}\n")
         modo_invencivel = True
         tempo_invencivel = 3000
 
@@ -444,5 +487,12 @@ while running:
 
     for exp in explosoes_para_remover:
         explosoes_ativas.remove(exp)
+    
+    texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
+    screen.blit(texto_titulo_top, (630, 50))
+
+    for i, (jogador, score) in enumerate(top5):
+        texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
+        screen.blit(texto_score, (630, 80 + (i * 25)))
 
     display.update()
