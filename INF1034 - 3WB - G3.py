@@ -442,7 +442,7 @@ while running:
             explosoes_ativas.append(nova_explosao)
             print(f"{nome}: {tempo_morte:.1f}s")
             
-            top5.append((nome, tempo_decorrido +7762))
+            top5.append((nome, tempo_decorrido))
             top5.sort(key=lambda x: x[1], reverse=True)
             top5 = top5[:5]
             
