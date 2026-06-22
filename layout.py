@@ -1,19 +1,29 @@
 from pygame import *
 import sys
-
+import random
 
 init()
 
 screen = display.set_mode((1000, 600))
 display.set_caption('Hello world')
 clock = time.Clock()
-
+vel_tiro = 3
 # fonte do texto
 fonte = font.Font('texto.ttf', 10)
 
 # imagem de coraçao do lado da vida
 vida = image.load('vida.png')
 life = 3
+
+def tiros():
+    lista_inimigo = []
+    for i in range(4):
+        x_inicial = 900
+        y_inicial = random.randint(0,600)
+        lista_inimigo.append([x_inicial, y_inicial])
+    return lista_inimigo
+
+lista = tiros()
 
 current_frame_I = 0
 anim_time_I = 0
@@ -28,8 +38,8 @@ for i in range(6):
 current_frame_S = 0
 anim_time_S = 0
 shot_imagem = []
-pos_xS = pos_xI - 10
-pos_yS = pos_yI + 15
+# pos_xS = x_inicial - 10
+# pos_yS = y_inicial + 15
 for i in range(5):
     shot = image.load(f'inimigo_medio/Shooting/Shot{i}.png')
     shot = transform.scale(shot, (45,15))
@@ -45,7 +55,21 @@ while True:
     clock.tick(60)
     dt = clock.get_time()
 
+    screen.fill((0, 0, 0))
 
+    for pos in lista:
+        pos_xN = 900
+        screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
+        pos[0] = pos[0] - 0.3 * dt
+        #pos[1] = pos[1] + 15
+        screen.blit(shot_imagem[current_frame_S], (pos[0], pos[1]+15), (0,0,45,15))
+        if pos[0] < -100:
+            pos_xN = pos_xN + 0.2 * dt
+            lista = tiros()
+    
+
+
+    #pos_xS += -3
     anim_time_I += dt
     anim_time_sec_I = anim_time_I/1000
 
@@ -58,15 +82,17 @@ while True:
     anim_time_S += dt
     anim_time_sec_S = anim_time_S/1000
 
-    if anim_time_sec_S > 0.15:
+    if anim_time_sec_S > 0.1:
         current_frame_S += 1
-        pos_xS -= 100
+        #pos_xS -= 200
         if current_frame_S > 4:
             current_frame_S = 0
-            pos_xS = pos_xI + 10
+            #pos_xS = x_inicial + 10
         anim_time_S = 0
 
-    screen.fill((0, 0, 0))
+    
+    
+
 
     draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
 
@@ -105,7 +131,9 @@ while True:
     screen.blit(texto4, (25, 480))
     screen.blit(texto5, (25, 500))
 
-    screen.blit(inimigo_imagem[current_frame_I], (pos_xI,pos_yI), (0,0,79.5,40.5))
-    screen.blit(shot_imagem[current_frame_S], (pos_xS, pos_yS), (0,0,45,15))
+    
+    
+
+
 
     display.update()

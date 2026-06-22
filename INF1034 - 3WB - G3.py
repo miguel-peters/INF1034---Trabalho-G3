@@ -78,7 +78,7 @@ asteroide = transform.scale(image.load('background/asteroid-2.png'), (50, 50))
 #asteroides grandoes aleatorios
 lista_asteroides = []
 for i in range(4):
-    x_inicial = random.randint(0, 800)
+    x_inicial = random.randint(900, 1200)
     y_inicial = random.randint(0, 550)
     lista_asteroides.append([x_inicial, y_inicial])
 
@@ -327,18 +327,19 @@ while running:
     #     anim_time_sec_I = 0
 
     #asteroides
-    for ast in lista_asteroides:
-        ast[0] -= vel_ast 
-        
-        screen.blit(asteroide, (ast[0], ast[1]))
-        raio = tam-5
-        centro_x = int(ast[0] + raio)
-        centro_y = int(ast[1] + raio)
-        ast_hitbox = draw.circle(screen, (255, 0, 0), (centro_x, centro_y), raio, 2)
-        hitboxes_inimigas.append(ast_hitbox)
-        if ast[0] < -150:
-            ast[0] = 800
-            ast[1] = random.randint(0, 550)
+    if tempo_decorrido > 20:
+        for ast in lista_asteroides:
+            ast[0] -= vel_ast 
+            
+            screen.blit(asteroide, (ast[0], ast[1]))
+            raio = tam-5
+            centro_x = int(ast[0] + raio)
+            centro_y = int(ast[1] + raio)
+            ast_hitbox = draw.circle(screen, (255, 0, 0), (centro_x, centro_y), raio, 2)
+            hitboxes_inimigas.append(ast_hitbox)
+            if ast[0] < -150:
+                ast[0] = 800
+                ast[1] = random.randint(0, 550)
 
     # planetas grandes como props (igual às árvores no jogo 1)
     for px, py in planetas_grandes:
