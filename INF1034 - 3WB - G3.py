@@ -15,13 +15,13 @@ vel_ast = 2
 modo_invencivel = True
 tempo_invencivel = 2000
 
-#nome
+# ---PROCESSO DE RANKING no TXT---
+
 nome = input("Digite o nome do jogador de 6 ou menos caracteres: ")
 while len(nome) > 6:
     print("Nome inválido! Digite um nome com 6 a 10 caracteres.")
     nome = input("Digite o nome do jogador de 6 ou menos caracteres: ")
 
-#ranking
 top5 = []
 try:
     with open("ranking.txt", "r") as arquivo:
@@ -39,7 +39,8 @@ while len(top5) < 5:
     top5.append(("---", 0))
 top5 = top5[:5]
 
-#sons
+# ---SONS---
+
 mixer.music.load("musica.mp3")
 
 mixer.music.play(-1)
@@ -57,11 +58,10 @@ for i in range(8):
 
 explosoes_ativas = []
 
-# --- imagens ---
-# fundos 
-bb = transform.scale(image.load('background/blue-back.png'), (tile_size, tile_size))
-bs = transform.scale(image.load('background/blue-stars.png'), (tile_size, tile_size))
-bw = transform.scale(image.load('background/blue-with-stars.png'), (tile_size, tile_size))
+# ---IMAGENS---
+
+# fundo
+imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
 
 # tile de asteroide 
 a2 = transform.scale(image.load('background/asteroid-2.png'), (tile_size, tile_size))
@@ -75,9 +75,6 @@ pb = image.load('background/prop-planet-big.png')
 #coisa voando
 asteroide = transform.scale(image.load('background/asteroid-2.png'), (50, 50))
 
-#fundo
-imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
-
 #asteroides grandoes aleatorios
 lista_asteroides = []
 for i in range(4):
@@ -85,58 +82,13 @@ for i in range(4):
     y_inicial = random.randint(0, 550)
     lista_asteroides.append([x_inicial, y_inicial])
 
-
 tiles_img = {
-    'bb': bb,   # fundo azul escuro
-    'bs': bs,   # fundo com estrelas
-    'bw': bw,   # fundo azul com estrelas (mais claro)
     'a2': a2,   # asteroide
     'ps': ps,   # planeta pequeno
 }
 
-# mapa de fundo (camada 1) - cobre a tela inteira
+# mapa dos asteroides e planetas pequenos por cima do fundo
 mapa = [
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bs,bb,bb,bs,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb',
-    'bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb',
-    'bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb',
-    'bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb',
-    'bw,bb,bb,bs,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bs,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb',
-    'bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb',
-    'bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb',
-    'bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb',
-    'bb,bb,bb,bb,bw,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bs,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bw,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bw,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb',
-    'bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bs',
-    'bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs',
-    'bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb',
-    'bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb',
-    'bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bs,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs',
-    'bb,bb,bb,bb,bw,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb',
-    'bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bb,bw,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bb,bs,bb,bb',
-    'bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb',
-    'bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb,bb',
-    'bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb,bb,bs,bb,bb,bb,bb',
-    'bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb,bb,bw,bb,bb,bb,bb',
-]
-
-# mapa de props (camada 2) — asteroides e planetas pequenos por cima do fundo
-mapa2 = [
     ' , , , , , , , , a2 , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ',
     ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , ,a2, , , , , , , , , , , , , , , , , , , , ',
     ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ',
@@ -189,12 +141,18 @@ planetas_grandes = [
     (350, 500),
 ]
 
+# ---LAYOUT DO JOGO-----
+
 # fonte do texto
 fonteLAY = font.Font('texto.ttf', 10)
 
 # imagem de coraçao do lado da vida
 vida = image.load('vida.png')
 life = 3
+
+# -----ANIMAÇÃO DO JOGO-----
+
+#nave principal
 
 current_frame_R = 0
 anim_time_R = 0
@@ -216,9 +174,8 @@ for i in range(6):
     ship_animation_L.append(imagem_ship_L)
 esquerda = False
 
+#naves inimigas
 
-
-#classe de npc
 ship_normal = []
 ship_vermelho = []
 
@@ -277,14 +234,21 @@ class naveNPC:
         draw.rect(tela, (255, 0, 0), self.ship_hitbox, 2)
 
 bando_de_naves = []
-#range = quantas naves tem
 
 for i in range(10): # Pode colocar 10, 20...
     # Passamos as opções de cores para ele sortear quando nascer
     nova_nave = naveNPC(800, 0, opcoes_de_cores)
     bando_de_naves.append(nova_nave)
 
-#CONTADOR 
+current_frame_I = 0
+anim_time_I = 0
+inimigo_imagem = []
+for i in range(6):
+    inimigo = image.load(f'inimigo_medio/inimigo{i}.png')
+    inimigo = transform.scale(inimigo, (79.5, 40.5))
+    inimigo_imagem.append(inimigo)
+
+# ---TEMPO---
 
 fonte = font.Font(None, 30)
 
@@ -311,6 +275,10 @@ while running:
             for jogador, score in top5:
                 arquivo.write(f"{jogador},{score}\n")
 
+    # ---MOVIMENTAÇÃO + ANIMAÇÃO + HITBOXES-----
+
+    #nave principal
+
     if keys[K_a] and life!=0 and pos_x > 0:
         esquerda = True
         direita = False
@@ -324,8 +292,6 @@ while running:
         pos_y -= 0.3*dt
     elif keys[K_s] and life!=0 and pos_y < 560:
         pos_y += 0.3*dt
-
-
 
     anim_time_R += dt
     anim_time_sec_R = anim_time_R/1000
@@ -347,7 +313,18 @@ while running:
 
     screen.blit(imagem_ceu, (0, 0))
 
+    #inimigos
+
     hitboxes_inimigas = []
+
+    anim_time_I += dt
+    anim_time_sec_I = anim_time_I/1000
+
+    if anim_time_sec_I > 0.5:
+        current_frame_I += 1
+        if current_frame_I > 5:
+            current_frame_I = 0
+        anim_time_sec_I = 0
 
     #asteroides
     for ast in lista_asteroides:
@@ -362,17 +339,14 @@ while running:
         if ast[0] < -150:
             ast[0] = 800
             ast[1] = random.randint(0, 550)
-    
-
-
 
     # planetas grandes como props (igual às árvores no jogo 1)
     for px, py in planetas_grandes:
         screen.blit(pb, (px, py))
 
-    # camada 2 — asteroides e planetas pequenos
-    for i in range(len(mapa2)):
-        tiles = mapa2[i].split(',')
+    # asteroides e planetas pequenos do fundo
+    for i in range(len(mapa)):
+        tiles = mapa[i].split(',')
         for j in range(len(tiles)):
             tile = tiles[j].strip()
             if tile in tiles_img:
@@ -380,51 +354,12 @@ while running:
 
     draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
 
-    vida = transform.scale(vida, (100, 50))
-
-    if life == 3:
-        vida_cheia = screen.blit(vida, (15, 32), (0, 0, 35, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-        draw.rect(screen, (204, 0, 0), (54, 45, 150, 20), border_radius=20)
-
-    elif life == 2:
-        vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-        draw.rect(screen, (204, 0, 0), (54, 45, 100, 20), border_radius=20)
-
-    elif life == 1:
-        vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-        draw.rect(screen, (204, 0, 0), (54, 45, 50, 20), border_radius=20)
-
-    elif life == 0:
-        vida_vazia = screen.blit(vida, (21, 32), (60, 0, 30, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-
-    # colocar os textos
-    texto1 = fonteLAY.render('A - esquerda', True, (255, 255, 255))
-    texto2 = fonteLAY.render('D - direita', True, (255, 255, 255))
-    texto3 = fonteLAY.render('w - cima', True, (255, 255, 255))
-    texto4 = fonteLAY.render('S - baixo', True, (255, 255, 255))
-    # botei o espaco para dash mas n sei qual vms usar, ent da pra trocar
-    texto5 = fonteLAY.render('SPACE - dash', True, (255, 255, 255))
-
-    screen.blit(texto1, (25, 420))
-    screen.blit(texto2, (25, 440))
-    screen.blit(texto3, (25, 460))
-    screen.blit(texto4, (25, 480))
-    screen.blit(texto5, (25, 500))
-
-
     for nave in bando_de_naves:
         nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
         hitboxes_inimigas.append(nave.ship_hitbox)
 
-
-
     player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
     draw.rect(screen, (0, 255, 0), player_hitbox, 2)
-
 
     if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != 0 and not modo_invencivel:
         life -= 1
@@ -459,18 +394,50 @@ while running:
             modo_invencivel = False
             som_imortal.play()
 
-
-
     if ((not modo_invencivel) or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0)) and life != 0:
         if direita:
             screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
         elif esquerda:
             screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
 
+    # -----LAYOUT DO JOGO-----
 
-    # CONTADOR
+    vida = transform.scale(vida, (100, 50))
+
+    if life == 3:
+        vida_cheia = screen.blit(vida, (15, 32), (0, 0, 35, 50))
+        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+        draw.rect(screen, (204, 0, 0), (54, 45, 150, 20), border_radius=20)
+
+    elif life == 2:
+        vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
+        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+        draw.rect(screen, (204, 0, 0), (54, 45, 100, 20), border_radius=20)
+
+    elif life == 1:
+        vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
+        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+        draw.rect(screen, (204, 0, 0), (54, 45, 50, 20), border_radius=20)
+
+    elif life == 0:
+        vida_vazia = screen.blit(vida, (21, 32), (60, 0, 30, 50))
+        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+
+    # colocar os textos
+    texto1 = fonteLAY.render('A - esquerda', True, (255, 255, 255))
+    texto2 = fonteLAY.render('D - direita', True, (255, 255, 255))
+    texto3 = fonteLAY.render('w - cima', True, (255, 255, 255))
+    texto4 = fonteLAY.render('S - baixo', True, (255, 255, 255))
+
+    screen.blit(texto1, (25, 420))
+    screen.blit(texto2, (25, 440))
+    screen.blit(texto3, (25, 460))
+    screen.blit(texto4, (25, 480))
+
     texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
     screen.blit(texto, (630,20))
+
+    # -----MORTE + GRAVAÇÃO DE RANKING-----
 
     explosoes_para_remover = [] 
 
