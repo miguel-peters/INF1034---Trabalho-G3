@@ -19,7 +19,7 @@ def tiros():
     lista_inimigo = []
     for i in range(4):
         x_inicial = 900
-        y_inicial = random.randint(0,600)
+        y_inicial = random.randint(50,550)
         lista_inimigo.append([x_inicial, y_inicial])
     return lista_inimigo
 

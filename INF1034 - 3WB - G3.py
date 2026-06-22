@@ -10,7 +10,7 @@ running = True
 tempo_inicial = time.get_ticks()
 tile_size = 16
 tam = 30
-
+modo = 'Fácil'
 vel_ast = 2
 modo_invencivel = True
 tempo_invencivel = 2000
@@ -240,13 +240,34 @@ for i in range(10): # Pode colocar 10, 20...
     nova_nave = naveNPC(800, 0, opcoes_de_cores)
     bando_de_naves.append(nova_nave)
 
-# current_frame_I = 0
-# anim_time_I = 0
-# inimigo_imagem = []
-# for i in range(6):
-#     inimigo = image.load(f'inimigo_medio/inimigo{i}.png')
-#     inimigo = transform.scale(inimigo, (79.5, 40.5))
-#     inimigo_imagem.append(inimigo)
+#naves inimigas modo médio
+def tiros():
+    lista_inimigo = []
+    for i in range(8):
+        x_inicial = 700
+        y_inicial = random.randint(50,550)
+        lista_inimigo.append([x_inicial, y_inicial])
+    return lista_inimigo
+
+lista = tiros()
+
+current_frame_I = 0
+anim_time_I = 0
+inimigo_imagem = []
+pos_xI = 600
+pos_yI = 200
+for i in range(6):
+    inimigo = image.load(f'inimigo_medio/Left/inimigo{i}.png')
+    inimigo = transform.scale(inimigo, (79.5, 40.5))
+    inimigo_imagem.append(inimigo)
+
+current_frame_S = 0
+anim_time_S = 0
+shot_imagem = []
+for i in range(5):
+    shot = image.load(f'inimigo_medio/Shooting/Shot{i}.png')
+    shot = transform.scale(shot, (45,15))
+    shot_imagem.append(shot)
 
 # ---TEMPO---
 
@@ -317,17 +338,9 @@ while running:
 
     hitboxes_inimigas = []
 
-    # anim_time_I += dt
-    # anim_time_sec_I = anim_time_I/1000
-
-    # if anim_time_sec_I > 0.5:
-    #     current_frame_I += 1
-    #     if current_frame_I > 5:
-    #         current_frame_I = 0
-    #     anim_time_sec_I = 0
 
     #asteroides
-    if tempo_decorrido > 20:
+    if tempo_decorrido > 60:
         for ast in lista_asteroides:
             ast[0] -= vel_ast 
             
@@ -340,6 +353,35 @@ while running:
             if ast[0] < -150:
                 ast[0] = 800
                 ast[1] = random.randint(0, 550)
+
+    if tempo_decorrido > 60:
+        for pos in lista:
+            pos_xN = 700
+            screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
+            pos[0] = pos[0] - 0.5 * dt
+            screen.blit(shot_imagem[current_frame_S], (pos[0]-10, pos[1]+15), (0,0,45,15))
+            if pos[0] < -100:
+                pos_xN = pos_xN + 0.2 * dt
+                lista = tiros()
+
+        anim_time_I += dt
+        anim_time_sec_I = anim_time_I/1000
+
+        if anim_time_sec_I > 0.5:
+            current_frame_I += 1
+            if current_frame_I > 5:
+                current_frame_I = 0
+            anim_time_sec_I = 0
+
+        anim_time_S += dt
+        anim_time_sec_S = anim_time_S/1000
+
+        if anim_time_sec_S > 0.1:
+            current_frame_S += 1
+            if current_frame_S > 4:
+                current_frame_S = 0
+            anim_time_S = 0
+
 
     # planetas grandes como props (igual às árvores no jogo 1)
     for px, py in planetas_grandes:
@@ -355,9 +397,10 @@ while running:
 
     draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
 
-    for nave in bando_de_naves:
-        nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
-        hitboxes_inimigas.append(nave.ship_hitbox)
+    if tempo_decorrido < 60:
+        for nave in bando_de_naves:
+            nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
+            hitboxes_inimigas.append(nave.ship_hitbox)
 
     player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
     draw.rect(screen, (0, 255, 0), player_hitbox, 2)
