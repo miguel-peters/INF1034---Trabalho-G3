@@ -240,13 +240,13 @@ for i in range(10): # Pode colocar 10, 20...
     nova_nave = naveNPC(800, 0, opcoes_de_cores)
     bando_de_naves.append(nova_nave)
 
-current_frame_I = 0
-anim_time_I = 0
-inimigo_imagem = []
-for i in range(6):
-    inimigo = image.load(f'inimigo_medio/inimigo{i}.png')
-    inimigo = transform.scale(inimigo, (79.5, 40.5))
-    inimigo_imagem.append(inimigo)
+# current_frame_I = 0
+# anim_time_I = 0
+# inimigo_imagem = []
+# for i in range(6):
+#     inimigo = image.load(f'inimigo_medio/inimigo{i}.png')
+#     inimigo = transform.scale(inimigo, (79.5, 40.5))
+#     inimigo_imagem.append(inimigo)
 
 # ---TEMPO---
 
@@ -317,14 +317,14 @@ while running:
 
     hitboxes_inimigas = []
 
-    anim_time_I += dt
-    anim_time_sec_I = anim_time_I/1000
+    # anim_time_I += dt
+    # anim_time_sec_I = anim_time_I/1000
 
-    if anim_time_sec_I > 0.5:
-        current_frame_I += 1
-        if current_frame_I > 5:
-            current_frame_I = 0
-        anim_time_sec_I = 0
+    # if anim_time_sec_I > 0.5:
+    #     current_frame_I += 1
+    #     if current_frame_I > 5:
+    #         current_frame_I = 0
+    #     anim_time_sec_I = 0
 
     #asteroides
     for ast in lista_asteroides:
