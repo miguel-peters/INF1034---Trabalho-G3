@@ -14,6 +14,7 @@ modo = 'Fácil'
 vel_ast = 2
 modo_invencivel = True
 tempo_invencivel = 2000
+derrota = False
 
 # ---PROCESSO DE RANKING no TXT---
 
@@ -40,9 +41,7 @@ while len(top5) < 5:
 top5 = top5[:5]
 
 # ---SONS---
-
 mixer.music.load("musica.mp3")
-
 mixer.music.play(-1)
 
 som_dano = mixer.Sound('mario-power-down.mp3')
@@ -77,7 +76,7 @@ asteroide = transform.scale(image.load('background/asteroid-2.png'), (50, 50))
 
 #asteroides grandoes aleatorios
 lista_asteroides = []
-for i in range(4):
+for i in range(8):
     x_inicial = random.randint(900, 1200)
     y_inicial = random.randint(0, 550)
     lista_asteroides.append([x_inicial, y_inicial])
@@ -149,6 +148,16 @@ fonteLAY = font.Font('texto.ttf', 10)
 # imagem de coraçao do lado da vida
 vida = image.load('vida.png')
 life = 3
+
+# tela de derrota
+blur_surface = Surface((1000, 600))
+blur_surface.set_alpha(150) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
+blur_surface.fill((0, 0, 0)) # Cor do desfoque (preto)
+fonteJ = font.Font('texto.ttf', 15)
+botao_rec = Rect(300,300,150,50)
+
+
+fonteDerrota = font.Font('GTA.otf', 75)
 
 # -----ANIMAÇÃO DO JOGO-----
 
@@ -278,13 +287,22 @@ while running:
         if ev.type == QUIT:
             quit()
             sys.exit()
-    
+        if ev.type == MOUSEBUTTONDOWN:
+            if ev.button == 1:
+                pos_clique = mouse.get_pos()
+            if botao_rec.collidepoint(pos_clique) and derrota == True:
+                derrota = False
+                life = 3
+                tempo_decorrido = 0
+
+
     clock.tick(60)
     dt = clock.get_time()
     keys = key.get_pressed()
 
-    tempo_atual = time.get_ticks()
-    tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
+    if derrota == False:
+        tempo_atual = time.get_ticks()
+        tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
 
     if keys[K_g]:
         modo_g = True
@@ -340,7 +358,7 @@ while running:
 
 
     #asteroides
-    if tempo_decorrido > 60:
+    if tempo_decorrido > 60 and derrota == False:
         for ast in lista_asteroides:
             ast[0] -= vel_ast 
             
@@ -354,7 +372,6 @@ while running:
                 ast[0] = 800
                 ast[1] = random.randint(0, 550)
 
-    if tempo_decorrido > 60:
         for pos in lista:
             pos_xN = 700
             screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
@@ -397,10 +414,11 @@ while running:
 
     draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
 
-    if tempo_decorrido < 60:
-        for nave in bando_de_naves:
-            nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
-            hitboxes_inimigas.append(nave.ship_hitbox)
+    if derrota == False:
+        if tempo_decorrido < 60:
+            for nave in bando_de_naves:
+                nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
+                hitboxes_inimigas.append(nave.ship_hitbox)
 
     player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
     draw.rect(screen, (0, 255, 0), player_hitbox, 2)
@@ -466,6 +484,7 @@ while running:
     elif life == 0:
         vida_vazia = screen.blit(vida, (21, 32), (60, 0, 30, 50))
         draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+        derrota = True
 
     # colocar os textos
     texto1 = fonteLAY.render('A - esquerda', True, (255, 255, 255))
@@ -500,10 +519,18 @@ while running:
         explosoes_ativas.remove(exp)
     
     texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
-    screen.blit(texto_titulo_top, (630, 50))
-
-    for i, (jogador, score) in enumerate(top5):
-        texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
-        screen.blit(texto_score, (630, 80 + (i * 25)))
+    
+    if derrota == True:
+        screen.blit(blur_surface, (0, 0))
+        texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
+        screen.blit(texto_titulo_top, (550, 120))
+        for i, (jogador, score) in enumerate(top5):
+            texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
+            screen.blit(texto_score, (550, 140 + (i * 25)))
+        textoDerrota = fonteDerrota.render('WASTED', True, (255,255,255))
+        screen.blit(textoDerrota, (200,100))
+        draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
+        texto6 = fonte.render('Jogar de novo', True, (0,0,0))
+        screen.blit(texto6, (310,310))
 
     display.update()

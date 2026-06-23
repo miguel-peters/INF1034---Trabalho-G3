@@ -4,16 +4,25 @@ import random
 
 init()
 
-screen = display.set_mode((1000, 600))
+screen = display.set_mode((800, 600))
 display.set_caption('Hello world')
 clock = time.Clock()
 vel_tiro = 3
 # fonte do texto
-fonte = font.Font('texto.ttf', 10)
+fonte = font.Font('texto.ttf', 15)
+blur = True
 
 # imagem de coraçao do lado da vida
 vida = image.load('vida.png')
 life = 3
+
+botao_rec = Rect(300,300,150,50)
+
+blur_surface = Surface((1000, 600))
+blur_surface.set_alpha(150) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
+blur_surface.fill((0, 0, 0)) # Cor do desfoque (preto)
+
+fonteDerrota = font.Font('GTA.otf', 100)
 
 def tiros():
     lista_inimigo = []
@@ -51,44 +60,49 @@ while True:
         if evento.type == QUIT:
             quit()
             sys.exit()
+        if evento.type == MOUSEBUTTONDOWN:
+            if evento.button == 1:
+                pos_clique = mouse.get_pos()
+            if botao_rec.collidepoint(pos_clique):
+                blur = False
 
     clock.tick(60)
     dt = clock.get_time()
 
-    screen.fill((0, 0, 0))
+    screen.fill((142, 45, 200))
 
-    for pos in lista:
-        pos_xN = 900
-        screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
-        pos[0] = pos[0] - 0.3 * dt
-        #pos[1] = pos[1] + 15
-        screen.blit(shot_imagem[current_frame_S], (pos[0], pos[1]+15), (0,0,45,15))
-        if pos[0] < -100:
-            pos_xN = pos_xN + 0.2 * dt
-            lista = tiros()
+    # for pos in lista:
+    #     pos_xN = 900
+    #     screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
+    #     pos[0] = pos[0] - 0.3 * dt
+    #     #pos[1] = pos[1] + 15
+    #     screen.blit(shot_imagem[current_frame_S], (pos[0], pos[1]+15), (0,0,45,15))
+    #     if pos[0] < -100:
+    #         pos_xN = pos_xN + 0.2 * dt
+    #         lista = tiros()
     
 
 
-    #pos_xS += -3
-    anim_time_I += dt
-    anim_time_sec_I = anim_time_I/1000
+    # #pos_xS += -3
+    # anim_time_I += dt
+    # anim_time_sec_I = anim_time_I/1000
 
-    if anim_time_sec_I > 0.5:
-        current_frame_I += 1
-        if current_frame_I > 5:
-            current_frame_I = 0
-        anim_time_sec_I = 0
+    # if anim_time_sec_I > 0.5:
+    #     current_frame_I += 1
+    #     if current_frame_I > 5:
+    #         current_frame_I = 0
+    #     anim_time_sec_I = 0
 
-    anim_time_S += dt
-    anim_time_sec_S = anim_time_S/1000
+    # anim_time_S += dt
+    # anim_time_sec_S = anim_time_S/1000
 
-    if anim_time_sec_S > 0.1:
-        current_frame_S += 1
-        #pos_xS -= 200
-        if current_frame_S > 4:
-            current_frame_S = 0
-            #pos_xS = x_inicial + 10
-        anim_time_S = 0
+    # if anim_time_sec_S > 0.1:
+    #     current_frame_S += 1
+    #     #pos_xS -= 200
+    #     if current_frame_S > 4:
+    #         current_frame_S = 0
+    #         #pos_xS = x_inicial + 10
+    #     anim_time_S = 0
 
     
     
@@ -132,8 +146,20 @@ while True:
     screen.blit(texto5, (25, 500))
 
     
+    textoDerrota = fonteDerrota.render('WASTED', True, (255,255,255))
     
+    if blur == True:
+        screen.blit(blur_surface, (0, 0))
+    screen.blit(textoDerrota, (350,100))
 
 
 
+    draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
+
+    texto6 = fonte.render('Jogar de novo', True, (0,0,0))
+    screen.blit(texto6, (310,310))
+
+
+
+    display.flip()
     display.update()
