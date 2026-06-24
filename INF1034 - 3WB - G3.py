@@ -16,28 +16,80 @@ modo_invencivel = True
 tempo_invencivel = 2000
 derrota = False
 
-# ---TELA DE LOGIN---
-fonte = font.Font('texto.ttf', 15)
-fundo = image.load('background/blue-back.png')
-fundo = transform.scale(fundo, (800, 600))
-tela_atual = 'login'
-texto_nome = ''
-campo_ativo = False
-caixa_nome = Rect(300, 280, 200, 35)
-fonte_login = font.Font('texto.ttf', 15)
-fundo_login = transform.scale(image.load('background/blue-back.png'), (800, 600))
-nome = ''
 
 
-def tela_inicio():
-    screen.blit(fundo, (0, 0))
-    titulo = fonte.render('Insira  seu  nome', True, (255, 255, 255))
-    screen.blit(titulo, (335, 200))
-    draw.rect(screen, (255, 255, 255), caixa_nome, 2)
 
-    # para escrever seu nome dentro da caixa
-    nome = fonte.render(texto_nome, True, (255, 255, 255))
-    screen.blit(nome, (caixa_nome.x + 68, caixa_nome.y + 8))
+
+display.set_caption("Space Wars - INF1034 (G3)")
+
+# Cores
+PRETO        = (0,   0,   0)
+BRANCO       = (255, 255, 255)
+AMARELO_GTA  = (255, 200, 0)
+VERMELHO     = (200, 20,  20)
+VERDE        = (20,  200, 50)
+
+# Fontes 
+try:
+    fonte_gta_titulo = font.Font('GTA.otf', 90)
+    fonte_gta_med    = font.Font('GTA.otf', 65)
+    fonte_menu       = font.Font('texto.ttf', 28)
+    fonte_padrao     = font.Font('texto.ttf', 20)
+except:
+    fonte_gta_titulo = font.SysFont('impact', 90)
+    fonte_gta_med    = font.SysFont('impact', 65)
+    fonte_menu       = font.SysFont('arial', 28)
+    fonte_padrao     = font.SysFont('arial', 20)
+
+estado = 'inicio'
+opcao_selecionada = 0
+opcoes = ['JOGAR', 'SAIR']
+
+# Funções
+def desenha_texto_sombra(texto, fonte, cor, x, y):
+    sombra = fonte.render(texto, True, PRETO)
+    real = fonte.render(texto, True, cor)
+    screen.blit(sombra, (x + 3, y + 3))
+    screen.blit(real, (x, y))
+
+def centraliza_x(texto, fonte):
+    largura = fonte.size(texto)[0]
+    return (800 - largura) // 2
+
+# LOOP 
+while True:
+    clock.tick(60)
+    
+    for ev in event.get():
+        if ev.type == QUIT:
+            quit(); sys.exit()
+        
+        if ev.type == KEYDOWN:
+            if estado == 'inicio':
+                if ev.key == K_DOWN: opcao_selecionada = (opcao_selecionada + 1) % len(opcoes)
+                if ev.key == K_UP:   opcao_selecionada = (opcao_selecionada - 1) % len(opcoes)
+                if ev.key == K_RETURN:
+                    if opcao_selecionada == 0: estado = 'jogando'
+                    else: quit(); sys.exit()
+            
+            
+
+    screen.fill(PRETO)
+
+    if estado == 'inicio':
+        desenha_texto_sombra('SPACE', fonte_gta_titulo, AMARELO_GTA, centraliza_x('SPACE', fonte_gta_titulo), 100)
+        desenha_texto_sombra('WARS', fonte_gta_titulo, BRANCO, centraliza_x('WARS', fonte_gta_titulo), 200)
+        
+        for i, opt in enumerate(opcoes):
+            y = 400 + (i * 50)
+            cor = AMARELO_GTA if i == opcao_selecionada else BRANCO
+            desenha_texto_sombra(opt, fonte_menu, cor, centraliza_x(opt, fonte_menu), y)
+
+    
+
+
+    
+
 
 
 
@@ -171,11 +223,7 @@ vida = image.load('vida.png')
 life = 3
 
 # tela de derrota
-blur_surface = Surface((1000, 600))
-blur_surface.set_alpha(150) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
-blur_surface.fill((0, 0, 0)) # Cor do desfoque (preto)
-fonteJ = font.Font('texto.ttf', 15)
-botao_rec = Rect(300,300,150,50)
+
 
 
 fonteDerrota = font.Font('GTA.otf', 75)
