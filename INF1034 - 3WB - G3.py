@@ -16,9 +16,9 @@ modo_invencivel = True
 tempo_invencivel = 2000
 derrota = False
 
-time_sixseven = random.randint(20, 120)
+time_sixseven = random.randint(20, 80)
 jumpscare_tocado = False
-sixseven_gigante = transform.scale(image.load('67.jpg'), (800, 600))
+sixseven_gigante = transform.scale(image.load('67.jpg'), (1000, 700))
 # -----RESET DO JOGO-----
 
 estado = {
@@ -52,6 +52,7 @@ def resetar_jogo(estado):
     estado['tempo_invencivel'] = 2000
     estado['explosoes_ativas'] = []
     estado['jumpscare_tocado'] = False
+    jumpscare_tocado = False
 
     novos_asteroides = []
     for i in range(8):
@@ -152,7 +153,7 @@ while len(top5) < 5:
 top5 = top5[:5]
 
 # ---SONS---
-mixer.music.load("musica.mp3")
+mixer.music.load("drake.mp3")
 mixer.music.play(-1)
 
 som_dano = mixer.Sound('mario-power-down.mp3')
@@ -443,6 +444,8 @@ while running:
                     lista_asteroides = estado['lista_asteroides']
                     bando_de_naves = estado['bando_de_naves']
                     lista = estado['lista']
+                    jumpscare_tocado = estado['jumpscare_tocado']
+                    time_sixseven = random.randint(20, 80)
 
         screen.blit(sixseven, (75,160))
 
@@ -649,8 +652,8 @@ while running:
             tempo_invencivel = 3000
 
         if tempo_decorrido == time_sixseven and derrota == False:
-            screen.blit(sixseven_gigante, (0,0))
-            if not jumpscare_tocado:
+            screen.blit(sixseven_gigante, (-50,0))
+            if jumpscare_tocado == False:
                 scream.play()
                 jumpscare_tocado = True
     
