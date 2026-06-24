@@ -283,6 +283,52 @@ def tiros():
 
 lista = tiros()
 
+#---RESETAR O JOGO---
+
+estado = {
+    'life': 3,
+    'derrota': False,
+    'tempo_decorrido': 0,
+    'tempo_inicial': time.get_ticks(),
+    'pos_x': 100,
+    'pos_y': 200,
+    'direita': True,
+    'esquerda': False,
+    'modo_invencivel': True,
+    'tempo_invencivel': 2000,
+    'explosoes_ativas': [],
+    'lista_asteroides': [],
+    'bando_de_naves': [],
+    'lista': [],
+}
+
+def resetar_jogo(estado):
+    estado['life'] = 3
+    estado['derrota'] = False
+    estado['tempo_decorrido'] = 0
+    estado['tempo_inicial'] = time.get_ticks()
+    estado['pos_x'] = 100
+    estado['pos_y'] = 200
+    estado['direita'] = True
+    estado['esquerda'] = False
+    estado['modo_invencivel'] = True
+    estado['tempo_invencivel'] = 2000
+    estado['explosoes_ativas'] = []
+
+    novos_asteroides = []
+    for i in range(8):
+        x_inicial = random.randint(900, 1200)
+        y_inicial = random.randint(0, 550)
+        novos_asteroides.append([x_inicial, y_inicial])
+    estado['lista_asteroides'] = novos_asteroides
+
+    novas_naves = []
+    for i in range(10):
+        novas_naves.append(naveNPC(800, 0, opcoes_de_cores))
+    estado['bando_de_naves'] = novas_naves
+
+    estado['lista'] = tiros()
+
 current_frame_I = 0
 anim_time_I = 0
 inimigo_imagem = []
@@ -331,10 +377,23 @@ while running:
                 if ev.button == 1:
                     pos_clique = mouse.get_pos()
                 if botao_rec.collidepoint(pos_clique) and derrota == True:
-                    derrota = False
-                    life = 3
-                    tempo_decorrido = 0
+                    resetar_jogo(estado)
+                    derrota = estado['derrota']
+                    life = estado['life']
+                    tempo_decorrido = estado['tempo_decorrido']
+                    tempo_inicial = estado['tempo_inicial']
+                    pos_x = estado['pos_x']
+                    pos_y = estado['pos_y']
+                    direita = estado['direita']
+                    esquerda = estado['esquerda']
+                    modo_invencivel = estado['modo_invencivel']
+                    tempo_invencivel = estado['tempo_invencivel']
+                    explosoes_ativas = estado['explosoes_ativas']
+                    lista_asteroides = estado['lista_asteroides']
+                    bando_de_naves = estado['bando_de_naves']
+                    lista = estado['lista']
 
+                    
     clock.tick(60)
     dt = clock.get_time()
     keys = key.get_pressed()
