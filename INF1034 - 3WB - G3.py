@@ -48,6 +48,21 @@ def resetar_jogo(estado):
     estado['tempo_invencivel'] = 2000
     estado['explosoes_ativas'] = []
 
+    novos_asteroides = []
+    for i in range(8):
+        x_inicial = random.randint(900, 1200)
+        y_inicial = random.randint(0, 550)
+        novos_asteroides.append([x_inicial, y_inicial])
+    estado['lista_asteroides'] = novos_asteroides
+
+    # recria as naves inimigas
+    novas_naves = []
+    for i in range(10):
+        novas_naves.append(naveNPC(800, 0, opcoes_de_cores))
+    estado['bando_de_naves'] = novas_naves
+
+    # recria os tiros inimigos
+    estado['lista'] = tiros()
 # ---TELA DE LOGIN---
 
 # tela de início
