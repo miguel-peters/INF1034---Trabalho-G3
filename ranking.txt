@@ -1,5 +1,5 @@
+theuw,135
 aaa,100
+theuw,84
 miguel,83
-aaa,26
-miguel,17
-aaa,14
+theuw,27
