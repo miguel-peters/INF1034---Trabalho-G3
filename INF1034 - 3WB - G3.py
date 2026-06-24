@@ -16,12 +16,33 @@ modo_invencivel = True
 tempo_invencivel = 2000
 derrota = False
 
+# ---TELA DE LOGIN---
+fonte = font.Font('texto.ttf', 15)
+fundo = image.load('background/blue-back.png')
+fundo = transform.scale(fundo, (800, 600))
+tela_atual = 'login'
+texto_nome = ''
+campo_ativo = False
+caixa_nome = Rect(300, 280, 200, 35)
+fonte_login = font.Font('texto.ttf', 15)
+fundo_login = transform.scale(image.load('background/blue-back.png'), (800, 600))
+nome = ''
+
+
+def tela_inicio():
+    screen.blit(fundo, (0, 0))
+    titulo = fonte.render('Insira  seu  nome', True, (255, 255, 255))
+    screen.blit(titulo, (335, 200))
+    draw.rect(screen, (255, 255, 255), caixa_nome, 2)
+
+    # para escrever seu nome dentro da caixa
+    nome = fonte.render(texto_nome, True, (255, 255, 255))
+    screen.blit(nome, (caixa_nome.x + 68, caixa_nome.y + 8))
+
+
+
 # ---PROCESSO DE RANKING no TXT---
 
-nome = input("Digite o nome do jogador de 6 ou menos caracteres: ")
-while len(nome) > 6:
-    print("Nome inválido! Digite um nome com 6 a 10 caracteres.")
-    nome = input("Digite o nome do jogador de 6 ou menos caracteres: ")
 
 top5 = []
 try:
@@ -203,10 +224,12 @@ class naveNPC:
         self.velocidade_x = random.choice([-3,-2, 2, 3])
         self.velocidade_y = random.choice([-3, -2, 2, 3])
         
-        self.frame_atual = random.randint(0, 10) #cada dinossauro começa em frames diferentes xd
-        self.tempo_animacao = 0
 
         self.minha_animacao = random.choice(opcoes_de_cores)
+        self.frame_atual = random.randint(0,  len(self.minha_animacao) - 1) #cada dinossauro começa em frames diferentes xd
+        self.tempo_animacao = 0
+
+        
 
         self.ship_hitbox = Rect(self.x, self.y, tam+10, tam+10)
 
@@ -287,250 +310,269 @@ while running:
         if ev.type == QUIT:
             quit()
             sys.exit()
-        if ev.type == MOUSEBUTTONDOWN:
-            if ev.button == 1:
-                pos_clique = mouse.get_pos()
-            if botao_rec.collidepoint(pos_clique) and derrota == True:
-                derrota = False
-                life = 3
-                tempo_decorrido = 0
+        if tela_atual == 'login':
+            if ev.type == MOUSEBUTTONDOWN:
+                campo_ativo = caixa_nome.collidepoint(ev.pos)
 
+            if ev.type == KEYDOWN and campo_ativo:
+                if ev.key == K_RETURN:
+                    if 0 < len(texto_nome) <= 6:
+                        nome = texto_nome
+                        tela_atual = 'jogo'
+                        tempo_inicial = time.get_ticks()  
+                elif ev.key == K_BACKSPACE:
+                    texto_nome = texto_nome[:-1]
+                else:
+                    if len(texto_nome) < 6:
+                        texto_nome += ev.unicode
+
+        elif tela_atual == 'jogo':
+            if ev.type == MOUSEBUTTONDOWN:
+                if ev.button == 1:
+                    pos_clique = mouse.get_pos()
+                if botao_rec.collidepoint(pos_clique) and derrota == True:
+                    derrota = False
+                    life = 3
+                    tempo_decorrido = 0
 
     clock.tick(60)
     dt = clock.get_time()
     keys = key.get_pressed()
 
-    if derrota == False:
-        tempo_atual = time.get_ticks()
-        tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
+    if tela_atual == 'login':
+        tela_inicio()          
+    elif tela_atual == 'jogo':
+        if derrota == False:
+            tempo_atual = time.get_ticks()
+            tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
 
-    if keys[K_g]:
-        modo_g = True
-    if keys[K_u] and modo_g:
-        modo_u = True
-    if keys[K_i] and modo_u:
-        top5 = [("---", 0), ("---", 0), ("---", 0), ("---", 0), ("---", 0)]
-        with open("ranking.txt", "w") as arquivo:
-            for jogador, score in top5:
-                arquivo.write(f"{jogador},{score}\n")
-
-    # ---MOVIMENTAÇÃO + ANIMAÇÃO + HITBOXES-----
-
-    #nave principal
-
-    if keys[K_a] and life!=0 and pos_x > 0:
-        esquerda = True
-        direita = False
-        pos_x -= 0.3*dt
-    elif keys[K_d] and life!=0 and pos_x < 720:
-        direita = True
-        esquerda = False
-        pos_x += 0.3*dt
-    
-    if keys[K_w] and life!=0 and pos_y > 0:
-        pos_y -= 0.3*dt
-    elif keys[K_s] and life!=0 and pos_y < 560:
-        pos_y += 0.3*dt
-
-    anim_time_R += dt
-    anim_time_sec_R = anim_time_R/1000
-
-    if anim_time_sec_R > 0.5:
-        current_frame_R += 1
-        if current_frame_R > 5:
-            current_frame_R = 0
-        anim_time_sec_R = 0
-
-    anim_time_L += dt
-    anim_time_sec_L = anim_time_L/1000
-
-    if anim_time_sec_L > 0.5:
-        current_frame_L += 1
-        if current_frame_L > 5:
-            current_frame_L = 0
-        anim_time_sec_L = 0
-
-    screen.blit(imagem_ceu, (0, 0))
-
-    #inimigos
-
-    hitboxes_inimigas = []
-
-
-    #asteroides
-    if tempo_decorrido > 60 and derrota == False:
-        for ast in lista_asteroides:
-            ast[0] -= vel_ast 
-            
-            screen.blit(asteroide, (ast[0], ast[1]))
-            raio = tam-5
-            centro_x = int(ast[0] + raio)
-            centro_y = int(ast[1] + raio)
-            ast_hitbox = draw.circle(screen, (255, 0, 0), (centro_x, centro_y), raio, 2)
-            hitboxes_inimigas.append(ast_hitbox)
-            if ast[0] < -150:
-                ast[0] = 800
-                ast[1] = random.randint(0, 550)
-
-        for pos in lista:
-            pos_xN = 700
-            screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
-            pos[0] = pos[0] - 0.5 * dt
-            screen.blit(shot_imagem[current_frame_S], (pos[0]-10, pos[1]+15), (0,0,45,15))
-            if pos[0] < -100:
-                pos_xN = pos_xN + 0.2 * dt
-                lista = tiros()
-
-        anim_time_I += dt
-        anim_time_sec_I = anim_time_I/1000
-
-        if anim_time_sec_I > 0.5:
-            current_frame_I += 1
-            if current_frame_I > 5:
-                current_frame_I = 0
-            anim_time_sec_I = 0
-
-        anim_time_S += dt
-        anim_time_sec_S = anim_time_S/1000
-
-        if anim_time_sec_S > 0.1:
-            current_frame_S += 1
-            if current_frame_S > 4:
-                current_frame_S = 0
-            anim_time_S = 0
-
-
-    # planetas grandes como props (igual às árvores no jogo 1)
-    for px, py in planetas_grandes:
-        screen.blit(pb, (px, py))
-
-    # asteroides e planetas pequenos do fundo
-    for i in range(len(mapa)):
-        tiles = mapa[i].split(',')
-        for j in range(len(tiles)):
-            tile = tiles[j].strip()
-            if tile in tiles_img:
-                screen.blit(tiles_img[tile], (offset_x + j * tile_size, offset_y + i * tile_size))
-
-    draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
-
-    if derrota == False:
-        if tempo_decorrido < 60:
-            for nave in bando_de_naves:
-                nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
-                hitboxes_inimigas.append(nave.ship_hitbox)
-
-    player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
-    draw.rect(screen, (0, 255, 0), player_hitbox, 2)
-
-    if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != 0 and not modo_invencivel:
-        life -= 1
-        if life == 1 or life == 2:
-            som_dano.play()
-        if life == 0:
-            som_morte.play()
-            tempo_morte = time.get_ticks()//1000
-            nova_explosao = {
-                'x': pos_x-10,
-                'y': pos_y-20,
-                'frame': 0,
-                'tempo': 0
-            }
-            explosoes_ativas.append(nova_explosao)
-            print(f"{nome}: {tempo_morte:.1f}s")
-            
-            top5.append((nome, tempo_decorrido))
-            top5.sort(key=lambda x: x[1], reverse=True)
-            top5 = top5[:5]
-            
+        if keys[K_g]:
+            modo_g = True
+        if keys[K_u] and modo_g:
+            modo_u = True
+        if keys[K_i] and modo_u:
+            top5 = [("---", 0), ("---", 0), ("---", 0), ("---", 0), ("---", 0)]
             with open("ranking.txt", "w") as arquivo:
                 for jogador, score in top5:
                     arquivo.write(f"{jogador},{score}\n")
-        modo_invencivel = True
-        tempo_invencivel = 3000
 
+        # ---MOVIMENTAÇÃO + ANIMAÇÃO + HITBOXES-----
 
-    if modo_invencivel:
-        tempo_invencivel -= dt
-        if tempo_invencivel <= 0:
-            modo_invencivel = False
-            som_imortal.play()
+        #nave principal
 
-    if ((not modo_invencivel) or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0)) and life != 0:
-        if direita:
-            screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
-        elif esquerda:
-            screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
-
-    # -----LAYOUT DO JOGO-----
-
-    vida = transform.scale(vida, (100, 50))
-
-    if life == 3:
-        vida_cheia = screen.blit(vida, (15, 32), (0, 0, 35, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-        draw.rect(screen, (204, 0, 0), (54, 45, 150, 20), border_radius=20)
-
-    elif life == 2:
-        vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-        draw.rect(screen, (204, 0, 0), (54, 45, 100, 20), border_radius=20)
-
-    elif life == 1:
-        vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-        draw.rect(screen, (204, 0, 0), (54, 45, 50, 20), border_radius=20)
-
-    elif life == 0:
-        vida_vazia = screen.blit(vida, (21, 32), (60, 0, 30, 50))
-        draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
-        derrota = True
-
-    # colocar os textos
-    texto1 = fonteLAY.render('A - esquerda', True, (255, 255, 255))
-    texto2 = fonteLAY.render('D - direita', True, (255, 255, 255))
-    texto3 = fonteLAY.render('w - cima', True, (255, 255, 255))
-    texto4 = fonteLAY.render('S - baixo', True, (255, 255, 255))
-
-    screen.blit(texto1, (25, 420))
-    screen.blit(texto2, (25, 440))
-    screen.blit(texto3, (25, 460))
-    screen.blit(texto4, (25, 480))
-
-    texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
-    screen.blit(texto, (630,20))
-
-    # -----MORTE + GRAVAÇÃO DE RANKING-----
-
-    explosoes_para_remover = [] 
-
-    for exp in explosoes_ativas:
-        screen.blit(animacao_explosao[exp['frame']], (exp['x'], exp['y']))
+        if keys[K_a] and life!=0 and pos_x > 0:
+            esquerda = True
+            direita = False
+            pos_x -= 0.3*dt
+        elif keys[K_d] and life!=0 and pos_x < 720:
+            direita = True
+            esquerda = False
+            pos_x += 0.3*dt
         
-        exp['tempo'] += dt
-        if exp['tempo'] > 150:  # tempo entre frames da explosão
-            exp['frame'] += 1
-            exp['tempo'] = 0
-            
-            if exp['frame'] >= len(animacao_explosao):
-                explosoes_para_remover.append(exp)
+        if keys[K_w] and life!=0 and pos_y > 0:
+            pos_y -= 0.3*dt
+        elif keys[K_s] and life!=0 and pos_y < 560:
+            pos_y += 0.3*dt
 
-    for exp in explosoes_para_remover:
-        explosoes_ativas.remove(exp)
-    
-    texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
-    
-    if derrota == True:
-        screen.blit(blur_surface, (0, 0))
+        anim_time_R += dt
+        anim_time_sec_R = anim_time_R/1000
+
+        if anim_time_sec_R > 0.5:
+            current_frame_R += 1
+            if current_frame_R > 5:
+                current_frame_R = 0
+            anim_time_sec_R = 0
+
+        anim_time_L += dt
+        anim_time_sec_L = anim_time_L/1000
+
+        if anim_time_sec_L > 0.5:
+            current_frame_L += 1
+            if current_frame_L > 5:
+                current_frame_L = 0
+            anim_time_sec_L = 0
+
+        screen.blit(imagem_ceu, (0, 0))
+
+        #inimigos
+
+        hitboxes_inimigas = []
+
+
+        #asteroides
+        if tempo_decorrido > 60 and derrota == False:
+            for ast in lista_asteroides:
+                ast[0] -= vel_ast 
+                
+                screen.blit(asteroide, (ast[0], ast[1]))
+                raio = tam-5
+                centro_x = int(ast[0] + raio)
+                centro_y = int(ast[1] + raio)
+                ast_hitbox = draw.circle(screen, (255, 0, 0), (centro_x, centro_y), raio, 2)
+                hitboxes_inimigas.append(ast_hitbox)
+                if ast[0] < -150:
+                    ast[0] = 800
+                    ast[1] = random.randint(0, 550)
+
+            for pos in lista:
+                pos_xN = 700
+                screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
+                pos[0] = pos[0] - 0.5 * dt
+                screen.blit(shot_imagem[current_frame_S], (pos[0]-10, pos[1]+15), (0,0,45,15))
+                if pos[0] < -100:
+                    pos_xN = pos_xN + 0.2 * dt
+                    lista = tiros()
+
+            anim_time_I += dt
+            anim_time_sec_I = anim_time_I/1000
+
+            if anim_time_sec_I > 0.5:
+                current_frame_I += 1
+                if current_frame_I > 5:
+                    current_frame_I = 0
+                anim_time_sec_I = 0
+
+            anim_time_S += dt
+            anim_time_sec_S = anim_time_S/1000
+
+            if anim_time_sec_S > 0.1:
+                current_frame_S += 1
+                if current_frame_S > 4:
+                    current_frame_S = 0
+                anim_time_S = 0
+
+
+        # planetas grandes como props (igual às árvores no jogo 1)
+        for px, py in planetas_grandes:
+            screen.blit(pb, (px, py))
+
+        # asteroides e planetas pequenos do fundo
+        for i in range(len(mapa)):
+            tiles = mapa[i].split(',')
+            for j in range(len(tiles)):
+                tile = tiles[j].strip()
+                if tile in tiles_img:
+                    screen.blit(tiles_img[tile], (offset_x + j * tile_size, offset_y + i * tile_size))
+
+        draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
+
+        if derrota == False:
+            if tempo_decorrido < 60:
+                for nave in bando_de_naves:
+                    nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
+                    hitboxes_inimigas.append(nave.ship_hitbox)
+
+        player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
+        draw.rect(screen, (0, 255, 0), player_hitbox, 2)
+
+        if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != 0 and not modo_invencivel:
+            life -= 1
+            if life == 1 or life == 2:
+                som_dano.play()
+            if life == 0:
+                som_morte.play()
+                tempo_morte = time.get_ticks()//1000
+                nova_explosao = {
+                    'x': pos_x-10,
+                    'y': pos_y-20,
+                    'frame': 0,
+                    'tempo': 0
+                }
+                explosoes_ativas.append(nova_explosao)
+                print(f"{nome}: {tempo_morte:.1f}s")
+                
+                top5.append((nome, tempo_decorrido))
+                top5.sort(key=lambda x: x[1], reverse=True)
+                top5 = top5[:5]
+                
+                with open("ranking.txt", "w") as arquivo:
+                    for jogador, score in top5:
+                        arquivo.write(f"{jogador},{score}\n")
+            modo_invencivel = True
+            tempo_invencivel = 3000
+
+
+        if modo_invencivel:
+            tempo_invencivel -= dt
+            if tempo_invencivel <= 0:
+                modo_invencivel = False
+                som_imortal.play()
+
+        if ((not modo_invencivel) or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0)) and life != 0:
+            if direita:
+                screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
+            elif esquerda:
+                screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
+
+        # -----LAYOUT DO JOGO-----
+
+        vida = transform.scale(vida, (100, 50))
+
+        if life == 3:
+            vida_cheia = screen.blit(vida, (15, 32), (0, 0, 35, 50))
+            draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+            draw.rect(screen, (204, 0, 0), (54, 45, 150, 20), border_radius=20)
+
+        elif life == 2:
+            vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
+            draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+            draw.rect(screen, (204, 0, 0), (54, 45, 100, 20), border_radius=20)
+
+        elif life == 1:
+            vida_metade = screen.blit(vida, (20, 32), (33, 0, 30, 50))
+            draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+            draw.rect(screen, (204, 0, 0), (54, 45, 50, 20), border_radius=20)
+
+        elif life == 0:
+            vida_vazia = screen.blit(vida, (21, 32), (60, 0, 30, 50))
+            draw.rect(screen, (0, 0, 0), (54, 45, 150, 20), border_radius=20)
+            derrota = True
+
+        # colocar os textos
+        texto1 = fonteLAY.render('A - esquerda', True, (255, 255, 255))
+        texto2 = fonteLAY.render('D - direita', True, (255, 255, 255))
+        texto3 = fonteLAY.render('w - cima', True, (255, 255, 255))
+        texto4 = fonteLAY.render('S - baixo', True, (255, 255, 255))
+
+        screen.blit(texto1, (25, 420))
+        screen.blit(texto2, (25, 440))
+        screen.blit(texto3, (25, 460))
+        screen.blit(texto4, (25, 480))
+
+        texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
+        screen.blit(texto, (630,20))
+
+        # -----MORTE + GRAVAÇÃO DE RANKING-----
+
+        explosoes_para_remover = [] 
+
+        for exp in explosoes_ativas:
+            screen.blit(animacao_explosao[exp['frame']], (exp['x'], exp['y']))
+            
+            exp['tempo'] += dt
+            if exp['tempo'] > 150:  # tempo entre frames da explosão
+                exp['frame'] += 1
+                exp['tempo'] = 0
+                
+                if exp['frame'] >= len(animacao_explosao):
+                    explosoes_para_remover.append(exp)
+
+        for exp in explosoes_para_remover:
+            explosoes_ativas.remove(exp)
+        
         texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
-        screen.blit(texto_titulo_top, (550, 120))
-        for i, (jogador, score) in enumerate(top5):
-            texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
-            screen.blit(texto_score, (550, 140 + (i * 25)))
-        textoDerrota = fonteDerrota.render('WASTED', True, (255,255,255))
-        screen.blit(textoDerrota, (200,100))
-        draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
-        texto6 = fonte.render('Jogar de novo', True, (0,0,0))
-        screen.blit(texto6, (310,310))
+        
+        if derrota == True:
+            screen.blit(blur_surface, (0, 0))
+            texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
+            screen.blit(texto_titulo_top, (550, 120))
+            for i, (jogador, score) in enumerate(top5):
+                texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
+                screen.blit(texto_score, (550, 140 + (i * 25)))
+            textoDerrota = fonteDerrota.render('WASTED', True, (255,255,255))
+            screen.blit(textoDerrota, (200,100))
+            draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
+            texto6 = fonte.render('Jogar de novo', True, (0,0,0))
+            screen.blit(texto6, (310,310))
 
     display.update()
