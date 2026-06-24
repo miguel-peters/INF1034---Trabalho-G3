@@ -16,6 +16,9 @@ modo_invencivel = True
 tempo_invencivel = 2000
 derrota = False
 
+time_sixseven = random.randint(20, 120)
+jumpscare_tocado = False
+sixseven_gigante = transform.scale(image.load('67.jpg'), (800, 600))
 # -----RESET DO JOGO-----
 
 estado = {
@@ -33,6 +36,7 @@ estado = {
     'lista_asteroides': [],
     'bando_de_naves': [],
     'lista': [],
+    'jumpscare_tocado': False
 }
 
 def resetar_jogo(estado):
@@ -47,6 +51,7 @@ def resetar_jogo(estado):
     estado['modo_invencivel'] = True
     estado['tempo_invencivel'] = 2000
     estado['explosoes_ativas'] = []
+    estado['jumpscare_tocado'] = False
 
     novos_asteroides = []
     for i in range(8):
@@ -147,12 +152,14 @@ while len(top5) < 5:
 top5 = top5[:5]
 
 # ---SONS---
-# mixer.music.load("musica.mp3")
-# mixer.music.play(-1)
+mixer.music.load("musica.mp3")
+mixer.music.play(-1)
 
 som_dano = mixer.Sound('mario-power-down.mp3')
 som_morte = mixer.Sound('roblox-explosion-sound.mp3')
 som_imortal = mixer.Sound('imortal.mp3')
+som_repair = mixer.Sound('repair.mp3')
+scream = mixer.Sound('scream2.mp3')
 
 #explosao
 animacao_explosao = []
@@ -165,6 +172,11 @@ explosoes_ativas = []
 
 # ---IMAGENS---
 sixseven = image.load('67.png')
+vida_realista = imagem_item_vida = transform.scale(image.load('heart.png'), (30, 30))
+
+itens_vida_ativos = []
+timer_spawn_vida = 0
+
 # fundo
 imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
 
@@ -468,6 +480,24 @@ while running:
         else:
             aumento_vel = 1
 
+        #coracoes
+        if derrota == False:
+            timer_spawn_vida += dt
+            
+            if timer_spawn_vida > 30000:
+                novo_coracao = {
+                    'x': random.randint(800, 850),
+                    'y': random.randint(50, 550),
+                    'hitbox': Rect(0, 0, 30, 30)
+                }
+                itens_vida_ativos.append(novo_coracao)
+                timer_spawn_vida = 0
+
+        if keys[K_6]:
+            modo_6 = True
+        if keys[K_7] and modo_6:
+            life = 10000
+
         if keys[K_g]:
             modo_g = True
         if keys[K_u] and modo_g:
@@ -520,6 +550,8 @@ while running:
 
         hitboxes_inimigas = []
 
+        #vidas
+        
 
         #asteroides
         if tempo_decorrido > 60 and derrota == False:
@@ -616,7 +648,12 @@ while running:
             modo_invencivel = True
             tempo_invencivel = 3000
 
-        # screen.blit(sixseven, (75,160))
+        if tempo_decorrido == time_sixseven and derrota == False:
+            screen.blit(sixseven_gigante, (0,0))
+            if not jumpscare_tocado:
+                scream.play()
+                jumpscare_tocado = True
+    
         if modo_invencivel:
             tempo_invencivel -= dt
             if tempo_invencivel <= 0:
@@ -698,4 +735,29 @@ while running:
             draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
             texto6 = fonte.render('Jogar de novo', True, (0,0,0))
             screen.blit(texto6, (310,310))
+    
+        if derrota == False:
+            coracoes_para_remover = []
+
+            for coracao in itens_vida_ativos:
+                coracao['x'] -= 2 
+                
+                coracao['hitbox'].x = coracao['x']
+                coracao['hitbox'].y = coracao['y']
+                
+                screen.blit(imagem_item_vida, (coracao['x'], coracao['y']))
+                
+                if player_hitbox.colliderect(coracao['hitbox']):
+                    if life < 3 and life > 0: 
+                        life += 1
+                        som_repair.play()
+                    coracoes_para_remover.append(coracao)
+                    
+                elif coracao['x'] < -50:
+                    coracoes_para_remover.append(coracao)
+
+            for coracao in coracoes_para_remover:
+                if coracao in itens_vida_ativos:
+                    itens_vida_ativos.remove(coracao)
+    
     display.update()
