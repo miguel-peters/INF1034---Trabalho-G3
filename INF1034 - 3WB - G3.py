@@ -164,7 +164,7 @@ for i in range(8):
 explosoes_ativas = []
 
 # ---IMAGENS---
-
+sixseven = image.load('67.png')
 # fundo
 imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
 
@@ -303,12 +303,13 @@ opcoes_de_cores = [ship_normal, ship_vermelho]
 class naveNPC:
     def __init__(self, limite_x, chao_y, opcoes_de_cores):
         #posição inicial na tela
-        self.x = random.randint(700, 790)
+        self.x = random.randint(700, 780)
         self.y = random.randint(50, 550)
         # comeca andando para a esquerda (-2) ou direita (2)
+        
         self.velocidade_x = random.choice([-3,-2, 2, 3])
         self.velocidade_y = random.choice([-3, -2, 2, 3])
-        
+
 
         self.minha_animacao = random.choice(opcoes_de_cores)
         self.frame_atual = random.randint(0,  len(self.minha_animacao) - 1) #cada dinossauro começa em frames diferentes xd
@@ -318,10 +319,10 @@ class naveNPC:
 
         self.ship_hitbox = Rect(self.x, self.y, tam+10, tam+10)
 
-    def atualizar_e_desenhar(self, tela, dt, lista_animacao):
+    def atualizar_e_desenhar(self, tela, dt, lista_animacao, mult_vel):
         #movimento
-        self.x = self.x + self.velocidade_x
-        self.y = self.y + self.velocidade_y
+        self.x = self.x + (self.velocidade_x * mult_vel)
+        self.y = self.y + (self.velocidade_y * mult_vel)
 
         self.ship_hitbox.x = self.x
         self.ship_hitbox.y = self.y
@@ -348,7 +349,6 @@ class naveNPC:
             imagem_atual = transform.flip(imagem_atual, True, False)
             
         tela.blit(imagem_atual, (self.x, self.y))
-        draw.rect(tela, (255, 0, 0), self.ship_hitbox, 2)
 
 bando_de_naves = []
 
@@ -431,7 +431,9 @@ while running:
                     lista_asteroides = estado['lista_asteroides']
                     bando_de_naves = estado['bando_de_naves']
                     lista = estado['lista']
-    
+
+        screen.blit(sixseven, (75,160))
+
         if ev.type == KEYDOWN:
             if tela_atual == 'inicio':
                 if ev.key == K_DOWN: opcao_selecionada = (opcao_selecionada + 1) % len(opcoes)
@@ -459,6 +461,12 @@ while running:
         if derrota == False:
             tempo_atual = time.get_ticks()
             tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
+        
+        #dificuldade primeiro nivel
+        if tempo_decorrido>=30:
+            aumento_vel = 1.5
+        else:
+            aumento_vel = 1
 
         if keys[K_g]:
             modo_g = True
@@ -530,9 +538,13 @@ while running:
 
             for pos in lista:
                 pos_xN = 700
-                screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5))
+                screen.blit(inimigo_imagem[current_frame_I], (pos_xN,pos[1]), (0,0,79.5,40.5)) #safadin
+                nave_laser_hitbox = Rect(pos_xN, pos[1], 79.5, 40.5)
+                hitboxes_inimigas.append(nave_laser_hitbox)
                 pos[0] = pos[0] - 0.5 * dt
-                screen.blit(shot_imagem[current_frame_S], (pos[0]-10, pos[1]+15), (0,0,45,15))
+                screen.blit(shot_imagem[current_frame_S], (pos[0]-10, pos[1]+15), (0,0,45,15)) #safadin
+                laser_hitbox = Rect(pos[0]-10, pos[1]+15, 45, 15)
+                hitboxes_inimigas.append(laser_hitbox)
                 if pos[0] < -100:
                     pos_xN = pos_xN + 0.2 * dt
                     lista = tiros()
@@ -573,11 +585,10 @@ while running:
         if derrota == False:
             if tempo_decorrido < 60:
                 for nave in bando_de_naves:
-                    nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao)
+                    nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao, aumento_vel)
                     hitboxes_inimigas.append(nave.ship_hitbox)
 
         player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
-        draw.rect(screen, (0, 255, 0), player_hitbox, 2)
 
         if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != 0 and not modo_invencivel:
             life -= 1
@@ -605,7 +616,7 @@ while running:
             modo_invencivel = True
             tempo_invencivel = 3000
 
-
+        # screen.blit(sixseven, (75,160))
         if modo_invencivel:
             tempo_invencivel -= dt
             if tempo_invencivel <= 0:
@@ -619,7 +630,6 @@ while running:
                 screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
 
         # -----LAYOUT DO JOGO-----
-
         vida = transform.scale(vida, (100, 50))
 
         if life == 3:
@@ -688,5 +698,4 @@ while running:
             draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
             texto6 = fonte.render('Jogar de novo', True, (0,0,0))
             screen.blit(texto6, (310,310))
-
     display.update()

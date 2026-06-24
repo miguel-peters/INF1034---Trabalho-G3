@@ -1,5 +1,5 @@
-theuw,135
-aaa,100
-theuw,84
-miguel,83
-mig,68
+tostes,113
+miguel,76
+miguel,68
+mig,67
+miguel,55
