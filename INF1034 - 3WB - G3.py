@@ -16,11 +16,81 @@ modo_invencivel = True
 tempo_invencivel = 2000
 derrota = False
 
+# -----RESET DO JOGO-----
+
+estado = {
+    'life': 3,
+    'derrota': False,
+    'tempo_decorrido': 0,
+    'tempo_inicial': time.get_ticks(),
+    'pos_x': 100,
+    'pos_y': 200,
+    'direita': True,
+    'esquerda': False,
+    'modo_invencivel': True,
+    'tempo_invencivel': 2000,
+    'explosoes_ativas': [],
+    'lista_asteroides': [],
+    'bando_de_naves': [],
+    'lista': [],
+}
+
+def resetar_jogo(estado):
+    estado['life'] = 3
+    estado['derrota'] = False
+    estado['tempo_decorrido'] = 0
+    estado['tempo_inicial'] = time.get_ticks()
+    estado['pos_x'] = 100
+    estado['pos_y'] = 200
+    estado['direita'] = True
+    estado['esquerda'] = False
+    estado['modo_invencivel'] = True
+    estado['tempo_invencivel'] = 2000
+    estado['explosoes_ativas'] = []
+
 # ---TELA DE LOGIN---
+
+# tela de início
+
+# Cores
+PRETO        = (0,   0,   0)
+BRANCO       = (255, 255, 255)
+AMARELO_GTA  = (255, 200, 0)
+VERMELHO     = (200, 20,  20)
+VERDE        = (20,  200, 50)
+
+# Fontes 
+try:
+    fonte_gta_titulo = font.Font('GTA.otf', 90)
+    fonte_gta_med    = font.Font('GTA.otf', 65)
+    fonte_menu       = font.Font('texto.ttf', 28)
+    fonte_padrao     = font.Font('texto.ttf', 20)
+except:
+    fonte_gta_titulo = font.SysFont('impact', 90)
+    fonte_gta_med    = font.SysFont('impact', 65)
+    fonte_menu       = font.SysFont('arial', 28)
+    fonte_padrao     = font.SysFont('arial', 20)
+
+# estado = 'inicio'
+opcao_selecionada = 0
+opcoes = ['JOGAR', 'SAIR']
+
+# Funções
+def desenha_texto_sombra(texto, fonte, cor, x, y):
+    sombra = fonte.render(texto, True, PRETO)
+    real = fonte.render(texto, True, cor)
+    screen.blit(sombra, (x + 3, y + 3))
+    screen.blit(real, (x, y))
+
+def centraliza_x(texto, fonte):
+    largura = fonte.size(texto)[0]
+    return (800 - largura) // 2
+
+#tela de login
 fonte = font.Font('texto.ttf', 15)
 fundo = image.load('background/blue-back.png')
 fundo = transform.scale(fundo, (800, 600))
-tela_atual = 'login'
+tela_atual = 'inicio'
 texto_nome = ''
 campo_ativo = False
 caixa_nome = Rect(300, 280, 200, 35)
@@ -62,8 +132,8 @@ while len(top5) < 5:
 top5 = top5[:5]
 
 # ---SONS---
-mixer.music.load("musica.mp3")
-mixer.music.play(-1)
+# mixer.music.load("musica.mp3")
+# mixer.music.play(-1)
 
 som_dano = mixer.Sound('mario-power-down.mp3')
 som_morte = mixer.Sound('roblox-explosion-sound.mp3')
@@ -283,52 +353,6 @@ def tiros():
 
 lista = tiros()
 
-#---RESETAR O JOGO---
-
-estado = {
-    'life': 3,
-    'derrota': False,
-    'tempo_decorrido': 0,
-    'tempo_inicial': time.get_ticks(),
-    'pos_x': 100,
-    'pos_y': 200,
-    'direita': True,
-    'esquerda': False,
-    'modo_invencivel': True,
-    'tempo_invencivel': 2000,
-    'explosoes_ativas': [],
-    'lista_asteroides': [],
-    'bando_de_naves': [],
-    'lista': [],
-}
-
-def resetar_jogo(estado):
-    estado['life'] = 3
-    estado['derrota'] = False
-    estado['tempo_decorrido'] = 0
-    estado['tempo_inicial'] = time.get_ticks()
-    estado['pos_x'] = 100
-    estado['pos_y'] = 200
-    estado['direita'] = True
-    estado['esquerda'] = False
-    estado['modo_invencivel'] = True
-    estado['tempo_invencivel'] = 2000
-    estado['explosoes_ativas'] = []
-
-    novos_asteroides = []
-    for i in range(8):
-        x_inicial = random.randint(900, 1200)
-        y_inicial = random.randint(0, 550)
-        novos_asteroides.append([x_inicial, y_inicial])
-    estado['lista_asteroides'] = novos_asteroides
-
-    novas_naves = []
-    for i in range(10):
-        novas_naves.append(naveNPC(800, 0, opcoes_de_cores))
-    estado['bando_de_naves'] = novas_naves
-
-    estado['lista'] = tiros()
-
 current_frame_I = 0
 anim_time_I = 0
 inimigo_imagem = []
@@ -392,11 +416,27 @@ while running:
                     lista_asteroides = estado['lista_asteroides']
                     bando_de_naves = estado['bando_de_naves']
                     lista = estado['lista']
+    
+        if ev.type == KEYDOWN:
+            if tela_atual == 'inicio':
+                if ev.key == K_DOWN: opcao_selecionada = (opcao_selecionada + 1) % len(opcoes)
+                if ev.key == K_UP:   opcao_selecionada = (opcao_selecionada - 1) % len(opcoes)
+                if ev.key == K_RETURN:
+                    if opcao_selecionada == 0: tela_atual = 'login'
+                    else: quit(); sys.exit()
 
-                    
     clock.tick(60)
     dt = clock.get_time()
     keys = key.get_pressed()
+
+    if tela_atual == 'inicio':
+        desenha_texto_sombra('SPACE', fonte_gta_titulo, AMARELO_GTA, centraliza_x('SPACE', fonte_gta_titulo), 100)
+        desenha_texto_sombra('WARS', fonte_gta_titulo, BRANCO, centraliza_x('WARS', fonte_gta_titulo), 200)
+        
+        for i, opt in enumerate(opcoes):
+            y = 400 + (i * 50)
+            cor = AMARELO_GTA if i == opcao_selecionada else BRANCO
+            desenha_texto_sombra(opt, fonte_menu, cor, centraliza_x(opt, fonte_menu), y)
 
     if tela_atual == 'login':
         tela_inicio()          
@@ -628,7 +668,7 @@ while running:
             for i, (jogador, score) in enumerate(top5):
                 texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
                 screen.blit(texto_score, (550, 140 + (i * 25)))
-            textoDerrota = fonteDerrota.render('WASTED', True, (255,255,255))
+            textoDerrota = fonteDerrota.render('WASTED', True, (200,20,20))
             screen.blit(textoDerrota, (200,100))
             draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
             texto6 = fonte.render('Jogar de novo', True, (0,0,0))
