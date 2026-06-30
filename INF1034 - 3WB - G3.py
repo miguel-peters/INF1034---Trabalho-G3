@@ -18,6 +18,10 @@ tempo_invencivel = 2000
 derrota = False
 vitoria = False
 
+angulo_boss = 0
+velocidade_giro_boss = 0.05
+
+
 time_sixseven = random.randint(20, 80)
 jumpscare_tocado = False
 sixseven_gigante = transform.scale(image.load('67.jpg'), (1000, 700))
@@ -160,7 +164,7 @@ top5 = top5[:5]
 # ---SONS---
 if vitoria == False:
     mixer.music.load("drake.mp3")
-    mixer.music.play(-1)
+    # mixer.music.play(-1)
 
 if vitoria == True:
     mixer.music.stop()
@@ -204,6 +208,15 @@ pb = image.load('background/prop-planet-big.png')
 
 #coisa voando
 asteroide = transform.scale(image.load('background/asteroid-2.png'), (50, 50))
+
+#sixseven boss
+boss = transform.scale(image.load('67zin.png'), (300, 600))
+
+#Rhand
+Rhand = transform.scale(image.load('hand1.png'), (100, 100))
+
+#Lhand
+Lhand = transform.flip(Rhand, True, False)
 
 #asteroides grandoes aleatorios
 lista_asteroides = []
@@ -578,7 +591,8 @@ while running:
                 raio = tam-5
                 centro_x = int(ast[0] + raio)
                 centro_y = int(ast[1] + raio)
-                ast_hitbox = draw.circle(screen, (255, 0, 0), (centro_x, centro_y), raio, 2)
+                ast_hitbox = Rect(centro_x - raio, centro_y - raio, raio * 2, raio * 2)
+                # ast_hitbox = draw.circle(screen, (255, 0, 0), (centro_x, centro_y), raio, 2)
                 hitboxes_inimigas.append(ast_hitbox)
                 if ast[0] < -150:
                     ast[0] = 800
@@ -615,6 +629,21 @@ while running:
                     current_frame_S = 0
                 anim_time_S = 0
 
+        #sixseven boss
+        if  60 > tempo_decorrido > 5 and derrota == False:
+            boss_x = 500
+            boss_y = 0
+            angulo_boss += velocidade_giro_boss
+            if angulo_boss >= 4 or angulo_boss <= -4:
+                velocidade_giro_boss = velocidade_giro_boss * -1
+            boss_girando = transform.rotate(boss, angulo_boss)
+            retangulo_original = boss.get_rect(topleft=(boss_x, boss_y))
+            retangulo_girando = boss_girando.get_rect(center=retangulo_original.center)
+            screen.blit(boss_girando, retangulo_girando.topleft)
+            Rhand_y = 500
+            screen.blit(Rhand, (boss_x-50, Rhand_y))
+            Lhand_y = 500
+            screen.blit(Lhand, (boss_x+200, Lhand_y))
 
         # planetas grandes como props (igual às árvores no jogo 1)
         for px, py in planetas_grandes:
@@ -675,6 +704,22 @@ while running:
             if tempo_invencivel <= 0:
                 modo_invencivel = False
                 som_imortal.play()
+
+        #sixseven boss
+        if  60 > tempo_decorrido > 5 and derrota == False:
+            boss_x = 500
+            boss_y = 0
+            angulo_boss += velocidade_giro_boss
+            if angulo_boss >= 4 or angulo_boss <= -4:
+                velocidade_giro_boss = velocidade_giro_boss * -1
+            boss_girando = transform.rotate(boss, angulo_boss)
+            retangulo_original = boss.get_rect(topleft=(boss_x, boss_y))
+            retangulo_girando = boss_girando.get_rect(center=retangulo_original.center)
+            screen.blit(boss_girando, retangulo_girando.topleft)
+            Rhand_y = 500
+            screen.blit(Rhand, (boss_x-50, Rhand_y))
+            Lhand_y = 500
+            screen.blit(Lhand, (boss_x+200, Lhand_y))
 
         if ((not modo_invencivel) or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0)) and life != 0:
             if direita:
@@ -776,7 +821,7 @@ while running:
                 if coracao in itens_vida_ativos:
                     itens_vida_ativos.remove(coracao)
 
-        if tempo_decorrido > 20:
+        if tempo_decorrido > 60:
             vitoria = True
             pos_x += 0.3*dt
             blur += 0.05*dt
