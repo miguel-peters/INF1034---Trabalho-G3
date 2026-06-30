@@ -5,6 +5,7 @@ import random
 
 clock = time.Clock()
 init()
+mixer.init()
 screen = display.set_mode((800, 600))
 running = True
 tempo_inicial = time.get_ticks()
@@ -15,15 +16,18 @@ vel_ast = 2
 modo_invencivel = True
 tempo_invencivel = 2000
 derrota = False
+vitoria = False
 
 time_sixseven = random.randint(20, 80)
 jumpscare_tocado = False
 sixseven_gigante = transform.scale(image.load('67.jpg'), (1000, 700))
+
 # -----RESET DO JOGO-----
 
 estado = {
     'life': 3,
     'derrota': False,
+    'vitoria': False,
     'tempo_decorrido': 0,
     'tempo_inicial': time.get_ticks(),
     'pos_x': 100,
@@ -42,6 +46,7 @@ estado = {
 def resetar_jogo(estado):
     estado['life'] = 3
     estado['derrota'] = False
+    estado['vitoria'] = False
     estado['tempo_decorrido'] = 0
     estado['tempo_inicial'] = time.get_ticks()
     estado['pos_x'] = 100
@@ -153,14 +158,21 @@ while len(top5) < 5:
 top5 = top5[:5]
 
 # ---SONS---
-mixer.music.load("drake.mp3")
-mixer.music.play(-1)
+if vitoria == False:
+    mixer.music.load("drake.mp3")
+    mixer.music.play(-1)
+
+if vitoria == True:
+    mixer.music.stop()
+    mixer.music.load('vitoriaGTA.mp3')
+    mixer.music.play(-1)
 
 som_dano = mixer.Sound('mario-power-down.mp3')
 som_morte = mixer.Sound('roblox-explosion-sound.mp3')
 som_imortal = mixer.Sound('imortal.mp3')
 som_repair = mixer.Sound('repair.mp3')
 scream = mixer.Sound('scream2.mp3')
+
 
 #explosao
 animacao_explosao = []
@@ -269,8 +281,9 @@ vida = image.load('vida.png')
 life = 3
 
 # tela de derrota
+blur = 150
 blur_surface = Surface((1000, 600))
-blur_surface.set_alpha(150) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
+blur_surface.set_alpha(blur) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
 blur_surface.fill((0, 0, 0)) # Cor do desfoque (preto)
 fonteJ = font.Font('texto.ttf', 15)
 botao_rec = Rect(300,300,150,50)
@@ -557,7 +570,7 @@ while running:
         
 
         #asteroides
-        if tempo_decorrido > 60 and derrota == False:
+        if  20 > tempo_decorrido > 10 and derrota == False:
             for ast in lista_asteroides:
                 ast[0] -= vel_ast 
                 
@@ -618,7 +631,7 @@ while running:
         draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
 
         if derrota == False:
-            if tempo_decorrido < 60:
+            if tempo_decorrido < 10:
                 for nave in bando_de_naves:
                     nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao, aumento_vel)
                     hitboxes_inimigas.append(nave.ship_hitbox)
@@ -733,7 +746,7 @@ while running:
             for i, (jogador, score) in enumerate(top5):
                 texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
                 screen.blit(texto_score, (550, 140 + (i * 25)))
-            textoDerrota = fonteDerrota.render('WASTED', True, (200,20,20))
+            textoDerrota = fonteDerrota.render('WASTED', True, VERMELHO)
             screen.blit(textoDerrota, (200,100))
             draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
             texto6 = fonte.render('Jogar de novo', True, (0,0,0))
@@ -762,5 +775,17 @@ while running:
             for coracao in coracoes_para_remover:
                 if coracao in itens_vida_ativos:
                     itens_vida_ativos.remove(coracao)
-    
+
+        if tempo_decorrido > 20:
+            vitoria = True
+            pos_x += 0.3*dt
+            blur += 0.05*dt
+            blur_surface.set_alpha(blur) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
+            screen.blit(blur_surface, (0, 0))
+            if blur >= 250:
+                textoVitoria = fonteDerrota.render('MISSION PASSED', True, VERDE)
+                screen.blit(textoVitoria, (150,100))
+
+
+
     display.update()

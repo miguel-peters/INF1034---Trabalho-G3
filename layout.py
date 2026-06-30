@@ -147,10 +147,11 @@ while True:
 
     
     textoDerrota = fonteDerrota.render('WASTED', True, (255,255,255))
+    textoVitoria = fonteDerrota.render('MISSION PASSED', True, (57, 255, 20))
     
     if blur == True:
         screen.blit(blur_surface, (0, 0))
-    screen.blit(textoDerrota, (350,100))
+        screen.blit(textoVitoria, (100,100))
 
 
 
