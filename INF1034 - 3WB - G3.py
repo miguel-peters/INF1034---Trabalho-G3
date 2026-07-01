@@ -159,7 +159,6 @@ def tela_inicio():
 
 # ---PROCESSO DE RANKING no TXT---
 
-
 top5 = []
 try:
     with open("ranking.txt", "r") as arquivo:
@@ -214,7 +213,7 @@ timer_spawn_vida = 0
 
 # fundo
 imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
-mapa_2 = transform.scale(image.load('background/Space Backgroun2.png'), (800, 600))
+mapa_2 = transform.scale(image.load('background/Space Background2.png'), (800, 600))
 mapa_3 = transform.scale(image.load('background/Space Background3.png'), (800, 600))
 
 # tile de asteroide 
@@ -595,6 +594,8 @@ while running:
                 current_frame_L = 0
             anim_time_sec_L = 0
 
+
+        # --- MAPA ---
 
         if tempo_decorrido < 60:
             screen.blit(imagem_ceu, (0, 0))      
