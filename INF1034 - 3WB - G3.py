@@ -20,7 +20,19 @@ vitoria = False
 
 angulo_boss = 0
 velocidade_giro_boss = 0.05
+Lhand_y = 500
+velocidade_mao = 0.8
 
+boss_vida_max = 100
+boss_vida = 100
+
+
+
+def boss_tomar_dano(dano):
+    global boss_vida # esse global serve para avisar pro codigo q e pra ele usar a vida do boss q esta fora dessa funçao
+    boss_vida -= dano
+    if boss_vida < 0:
+        boss_vida = 0
 
 time_sixseven = random.randint(20, 80)
 jumpscare_tocado = False
@@ -640,10 +652,17 @@ while running:
             retangulo_original = boss.get_rect(topleft=(boss_x, boss_y))
             retangulo_girando = boss_girando.get_rect(center=retangulo_original.center)
             screen.blit(boss_girando, retangulo_girando.topleft)
+            Rhand_x = boss_x-50
             Rhand_y = 500
-            screen.blit(Rhand, (boss_x-50, Rhand_y))
-            Lhand_y = 500
-            screen.blit(Lhand, (boss_x+200, Lhand_y))
+            screen.blit(Rhand, (Rhand_x, Rhand_y))
+            Rhand_hitbox = Rect(boss_x-50, Rhand_y, 100, 80)
+            draw.rect(screen, (0, 255, 0), Rhand_hitbox, 2)
+            hitboxes_inimigas.append(Rhand_hitbox)
+            Lhand_x = boss_x+200
+            Lhand_y += velocidade_mao
+            if Lhand_y >= 520 or Lhand_y <= 420:
+                velocidade_mao = velocidade_mao * -1
+            screen.blit(Lhand, (Lhand_x, Lhand_y))
 
         # planetas grandes como props (igual às árvores no jogo 1)
         for px, py in planetas_grandes:
@@ -705,22 +724,6 @@ while running:
                 modo_invencivel = False
                 som_imortal.play()
 
-        #sixseven boss
-        if  60 > tempo_decorrido > 5 and derrota == False:
-            boss_x = 500
-            boss_y = 0
-            angulo_boss += velocidade_giro_boss
-            if angulo_boss >= 4 or angulo_boss <= -4:
-                velocidade_giro_boss = velocidade_giro_boss * -1
-            boss_girando = transform.rotate(boss, angulo_boss)
-            retangulo_original = boss.get_rect(topleft=(boss_x, boss_y))
-            retangulo_girando = boss_girando.get_rect(center=retangulo_original.center)
-            screen.blit(boss_girando, retangulo_girando.topleft)
-            Rhand_y = 500
-            screen.blit(Rhand, (boss_x-50, Rhand_y))
-            Lhand_y = 500
-            screen.blit(Lhand, (boss_x+200, Lhand_y))
-
         if ((not modo_invencivel) or (modo_invencivel and (tempo_invencivel // 300) % 2 == 0)) and life != 0:
             if direita:
                 screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
@@ -763,6 +766,28 @@ while running:
 
         texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
         screen.blit(texto, (630,20))
+
+        #vida do sixseven boss
+         # usa pra teste: aperta o espaço pra ir tirando a vida do boss
+        if ev.type == KEYDOWN:
+            if ev.key == K_SPACE:
+                boss_tomar_dano(1)
+
+    
+        draw.rect(screen, (102, 51, 0), (580, 20, 200, 70), border_radius=20)
+
+        sixseven = transform.scale(sixseven, (100, 50))
+
+        barra_largura_atual = boss_vida * 1.5
+
+        draw.rect(screen, (0, 0, 0), (590, 45, 150, 20), border_radius=20)
+
+        if barra_largura_atual > 0:
+            draw.rect(screen, (204, 0, 0), (590, 45, barra_largura_atual, 20), border_radius=20)
+
+
+        screen.blit(sixseven, (740, 32), (33, 0, 200, 200))
+
 
         # -----MORTE + GRAVAÇÃO DE RANKING-----
 
@@ -831,6 +856,7 @@ while running:
                 textoVitoria = fonteDerrota.render('MISSION PASSED', True, VERDE)
                 screen.blit(textoVitoria, (150,100))
 
+        
 
 
     display.update()
