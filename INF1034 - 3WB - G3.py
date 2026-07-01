@@ -195,7 +195,11 @@ som_imortal = mixer.Sound('sons/imortal.mp3')
 som_repair = mixer.Sound('sons/repair.mp3')
 scream = mixer.Sound('sons/scream2.mp3')
 fase = mixer.Sound('sons/fase.mp3')
-fase_media = mixer.Sound('sons/fase_media.mp3')
+fase_fácil = mixer.Sound('sons/fase_fácil.mp3')
+fase_media = mixer.Sound('sons/fase_media_f.mp3')
+fase_final = mixer.Sound('sons/fase_final.mp3')
+boss = mixer.Sound('sons/67boss.mp3')
+
 
 vit.set_volume(0.3)
 som_dano.set_volume(0.3)
@@ -627,7 +631,7 @@ while running:
 
 
         # --- MAPA ---
-        print((tempo_atual-tempo_inicial)//300)
+        # print((tempo_atual-tempo_inicial)//300)
 
         if tempo_decorrido >= 0:
             screen.blit(galaxia, (0, 0))
@@ -641,7 +645,6 @@ while running:
         # if 62 > tempo_decorrido >= 60 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
         #     screen.blit(mapa_2, (0,0))
 
-        
         if 120 > tempo_decorrido >= 60:
             screen.blit(mapa_2, (0,0))
             if muda_fase == False:
@@ -657,6 +660,10 @@ while running:
             if muda_fase == False:
                 fase.play()
                 muda_fase = True
+                musica_fase = False
+            if musica_fase == False:
+                fase_final.play()
+                musica_fase = True
 
         #inimigos
 
@@ -726,7 +733,7 @@ while running:
 
         
         #sixseven boss
-        if  180 > tempo_decorrido >= 1 and derrota == False:
+        if  180 > tempo_decorrido >= 120 and derrota == False:
             if boss_x > 480: #480
                 boss_x -= velocidade_boss*10
             boss_y = 0
