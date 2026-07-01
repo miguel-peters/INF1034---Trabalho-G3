@@ -1,5 +1,5 @@
-tostes,113
-tostes,82
-miguel,76
-miguel,68
-mig,67
+nath,69
+nath,61
+nath,53
+nath,49
+---,0

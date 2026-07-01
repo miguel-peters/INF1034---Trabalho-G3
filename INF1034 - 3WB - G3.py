@@ -17,6 +17,8 @@ modo_invencivel = True
 tempo_invencivel = 2000
 derrota = False
 vitoria = False
+muda_fase = False
+musica_fase = True
 
 angulo_boss = 0
 velocidade_giro_boss = 0.05
@@ -26,8 +28,6 @@ velocidade_mao = 0.8
 boss_vida_max = 100
 boss_vida = 100
 
-
-
 def boss_tomar_dano(dano):
     global boss_vida # esse global serve para avisar pro codigo q e pra ele usar a vida do boss q esta fora dessa funçao
     boss_vida -= dano
@@ -36,7 +36,7 @@ def boss_tomar_dano(dano):
 
 time_sixseven = random.randint(20, 80)
 jumpscare_tocado = False
-sixseven_gigante = transform.scale(image.load('67.jpg'), (1000, 700))
+sixseven_gigante = transform.scale(image.load('imagens/67.jpg'), (1000, 700))
 
 # -----RESET DO JOGO-----
 
@@ -44,6 +44,8 @@ estado = {
     'life': 3,
     'derrota': False,
     'vitoria': False,
+    'muda_fase': False,
+    'musica_fase': True,
     'tempo_decorrido': 0,
     'tempo_inicial': time.get_ticks(),
     'pos_x': 100,
@@ -63,6 +65,8 @@ def resetar_jogo(estado):
     estado['life'] = 3
     estado['derrota'] = False
     estado['vitoria'] = False
+    estado['muda_fase'] = False
+    estado['musica_fase'] = True
     estado['tempo_decorrido'] = 0
     estado['tempo_inicial'] = time.get_ticks()
     estado['pos_x'] = 100
@@ -103,10 +107,10 @@ VERDE        = (20,  200, 50)
 
 # Fontes 
 try:
-    fonte_gta_titulo = font.Font('GTA.otf', 90)
-    fonte_gta_med    = font.Font('GTA.otf', 65)
-    fonte_menu       = font.Font('texto.ttf', 28)
-    fonte_padrao     = font.Font('texto.ttf', 20)
+    fonte_gta_titulo = font.Font('textos/GTA.otf', 90)
+    fonte_gta_med    = font.Font('textos/GTA.otf', 65)
+    fonte_menu       = font.Font('textos/texto.ttf', 28)
+    fonte_padrao     = font.Font('textos/texto.ttf', 20)
 except:
     fonte_gta_titulo = font.SysFont('impact', 90)
     fonte_gta_med    = font.SysFont('impact', 65)
@@ -129,14 +133,14 @@ def centraliza_x(texto, fonte):
     return (800 - largura) // 2
 
 #tela de login
-fonte = font.Font('texto.ttf', 15)
+fonte = font.Font('textos/texto.ttf', 15)
 fundo = image.load('background/blue-back.png')
 fundo = transform.scale(fundo, (800, 600))
 tela_atual = 'inicio'
 texto_nome = ''
 campo_ativo = False
 caixa_nome = Rect(300, 280, 200, 35)
-fonte_login = font.Font('texto.ttf', 15)
+fonte_login = font.Font('textos/texto.ttf', 15)
 fundo_login = transform.scale(image.load('background/blue-back.png'), (800, 600))
 nome = ''
 
@@ -174,21 +178,18 @@ while len(top5) < 5:
 top5 = top5[:5]
 
 # ---SONS---
-if vitoria == False:
-    mixer.music.load("drake.mp3")
-    # mixer.music.play(-1)
 
-if vitoria == True:
-    mixer.music.stop()
-    mixer.music.load('vitoriaGTA.mp3')
-    mixer.music.play(-1)
+mixer.music.load("sons/drake.mp3")
+# mixer.music.play(-1)
 
-som_dano = mixer.Sound('mario-power-down.mp3')
-som_morte = mixer.Sound('roblox-explosion-sound.mp3')
-som_imortal = mixer.Sound('imortal.mp3')
-som_repair = mixer.Sound('repair.mp3')
-scream = mixer.Sound('scream2.mp3')
-
+vit = mixer.Sound('sons/vitoriaGTA.mp3')
+som_dano = mixer.Sound('sons/mario-power-down.mp3')
+som_morte = mixer.Sound('sons/roblox-explosion-sound.mp3')
+som_imortal = mixer.Sound('sons/imortal.mp3')
+som_repair = mixer.Sound('sons/repair.mp3')
+scream = mixer.Sound('sons/scream2.mp3')
+fase = mixer.Sound('sons/fase.mp3')
+fase_media = mixer.Sound('sons/fase_media.mp3')
 
 #explosao
 animacao_explosao = []
@@ -200,14 +201,21 @@ for i in range(8):
 explosoes_ativas = []
 
 # ---IMAGENS---
-sixseven = image.load('67.png')
-vida_realista = imagem_item_vida = transform.scale(image.load('heart.png'), (30, 30))
+
+arma = transform.scale(image.load('imagens/armas.png'), (100,100))
+pos_xA = 350
+pos_yA = 50
+
+sixseven = image.load('imagens/67.png')
+vida_realista = imagem_item_vida = transform.scale(image.load('imagens/heart.png'), (30, 30))
 
 itens_vida_ativos = []
 timer_spawn_vida = 0
 
 # fundo
 imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800, 600))
+mapa_2 = transform.scale(image.load('background/Space Backgroun2.png'), (800, 600))
+mapa_3 = transform.scale(image.load('background/Space Background3.png'), (800, 600))
 
 # tile de asteroide 
 a2 = transform.scale(image.load('background/asteroid-2.png'), (tile_size, tile_size))
@@ -222,10 +230,10 @@ pb = image.load('background/prop-planet-big.png')
 asteroide = transform.scale(image.load('background/asteroid-2.png'), (50, 50))
 
 #sixseven boss
-boss = transform.scale(image.load('67zin.png'), (300, 600))
+boss = transform.scale(image.load('imagens/67zin.png'), (300, 600))
 
 #Rhand
-Rhand = transform.scale(image.load('hand1.png'), (100, 100))
+Rhand = transform.scale(image.load('imagens/hand1.png'), (100, 100))
 
 #Lhand
 Lhand = transform.flip(Rhand, True, False)
@@ -283,6 +291,8 @@ mapa = [
     ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ',
 ]
 
+
+
 # posicionar o mapa no meio da tela
 colunas = len(mapa[0].split(','))
 linhas = len(mapa)
@@ -299,10 +309,10 @@ planetas_grandes = [
 # ---LAYOUT DO JOGO-----
 
 # fonte do texto
-fonteLAY = font.Font('texto.ttf', 10)
+fonteLAY = font.Font('textos/texto.ttf', 10)
 
 # imagem de coraçao do lado da vida
-vida = image.load('vida.png')
+vida = image.load('imagens/vida.png')
 life = 3
 
 # tela de derrota
@@ -310,11 +320,11 @@ blur = 150
 blur_surface = Surface((1000, 600))
 blur_surface.set_alpha(blur) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
 blur_surface.fill((0, 0, 0)) # Cor do desfoque (preto)
-fonteJ = font.Font('texto.ttf', 15)
+fonteJ = font.Font('textos/texto.ttf', 15)
 botao_rec = Rect(300,300,150,50)
 
 
-fonteDerrota = font.Font('GTA.otf', 75)
+fonteDerrota = font.Font('textos/GTA.otf', 75)
 
 # -----ANIMAÇÃO DO JOGO-----
 
@@ -585,7 +595,25 @@ while running:
                 current_frame_L = 0
             anim_time_sec_L = 0
 
-        screen.blit(imagem_ceu, (0, 0))
+
+        if tempo_decorrido < 60:
+            screen.blit(imagem_ceu, (0, 0))      
+        
+        if 120 > tempo_decorrido >= 60:
+            screen.blit(mapa_2, (0,0))
+            if muda_fase == False:
+                fase.play()
+                muda_fase = True
+                musica_fase = False
+            if musica_fase == False:
+                fase_media.play()
+                musica_fase = True
+
+        if tempo_decorrido >= 120:
+            screen.blit(mapa_3, (0,0))
+            if muda_fase == False:
+                fase.play()
+                muda_fase = True
 
         #inimigos
 
@@ -593,9 +621,8 @@ while running:
 
         #vidas
         
-
         #asteroides
-        if  20 > tempo_decorrido > 10 and derrota == False:
+        if  120 > tempo_decorrido > 60 and derrota == False:
             for ast in lista_asteroides:
                 ast[0] -= vel_ast 
                 
@@ -642,7 +669,7 @@ while running:
                 anim_time_S = 0
 
         #sixseven boss
-        if  60 > tempo_decorrido > 5 and derrota == False:
+        if  180 > tempo_decorrido > 120 and derrota == False:
             boss_x = 500
             boss_y = 0
             angulo_boss += velocidade_giro_boss
@@ -679,7 +706,7 @@ while running:
         draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
 
         if derrota == False:
-            if tempo_decorrido < 10:
+            if tempo_decorrido < 60:
                 for nave in bando_de_naves:
                     nave.atualizar_e_desenhar(screen, dt, nave.minha_animacao, aumento_vel)
                     hitboxes_inimigas.append(nave.ship_hitbox)
@@ -729,6 +756,16 @@ while running:
                 screen.blit(ship_animation_R[current_frame_R], (pos_x,pos_y), (0,0,79.5,40.5))
             elif esquerda:
                 screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
+
+        # if 25 > tempo_decorrido >= 20:
+        #     pos_x = 350
+        #     pos_y = 300
+        #     pos_yA += 0.05*dt
+        #     screen.blit(arma, (pos_xA, pos_yA))
+        #     modo_boss = True
+
+        # if modo_boss == True:
+        #     screen.blit(shot_imagem[current_frame_S], (pos_x-10, pos_y+15), (0,0,45,15))
 
         # -----LAYOUT DO JOGO-----
         vida = transform.scale(vida, (100, 50))
@@ -788,7 +825,6 @@ while running:
 
         screen.blit(sixseven, (740, 32), (33, 0, 200, 200))
 
-
         # -----MORTE + GRAVAÇÃO DE RANKING-----
 
         explosoes_para_remover = [] 
@@ -846,8 +882,10 @@ while running:
                 if coracao in itens_vida_ativos:
                     itens_vida_ativos.remove(coracao)
 
-        if tempo_decorrido > 60:
-            vitoria = True
+        if tempo_decorrido > 180:
+            if vitoria == False:
+                vit.play()
+                vitoria = True
             pos_x += 0.3*dt
             blur += 0.05*dt
             blur_surface.set_alpha(blur) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
@@ -855,8 +893,5 @@ while running:
             if blur >= 250:
                 textoVitoria = fonteDerrota.render('MISSION PASSED', True, VERDE)
                 screen.blit(textoVitoria, (150,100))
-
-        
-
 
     display.update()
