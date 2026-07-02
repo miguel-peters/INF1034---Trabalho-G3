@@ -23,10 +23,12 @@ musica_fase = True
 velocidade_boss = 0.8
 boss_x = 900
 angulo_boss = 0
-velocidade_giro_boss = 0.05
-Rhand_y = 450
-Lhand_y = 500
-velocidade_mao = 1
+velocidade_giro_boss = 0.08
+Rhand_y = 380
+Lhand_y = 480
+velocidade_mao = velocidade_giro_boss*11.5
+modo_ataque = False
+modo_rapido = False
 
 boss_vida_max = 100
 boss_vida = 100
@@ -199,6 +201,17 @@ fase_fácil = mixer.Sound('sons/fase_fácil.mp3')
 fase_media = mixer.Sound('sons/fase_media_f.mp3')
 fase_final = mixer.Sound('sons/fase_final.mp3')
 boss = mixer.Sound('sons/67boss.mp3')
+
+gritos_boss = [
+    mixer.Sound('sons/grito1.mp3'), # Troque pelo nome real dos seus arquivos
+    mixer.Sound('sons/grito2.mp3'),
+    mixer.Sound('sons/grito3.mp3'),
+    mixer.Sound('sons/grito4.mp3'),
+    mixer.Sound('sons/scream.mp3')
+]
+
+for grito in gritos_boss:
+    grito.set_volume(0.3)
 
 
 vit.set_volume(0.3)
@@ -733,21 +746,25 @@ while running:
 
         
         #sixseven boss
-        if  180 > tempo_decorrido >= 120 and derrota == False:
+        if  180 > tempo_decorrido >= 1 and derrota == False:
             if boss_x > 480: #480
                 boss_x -= velocidade_boss*10
-            boss_y = 0
+            boss_y = -30
             angulo_boss += velocidade_giro_boss
-            if angulo_boss >= 4 or angulo_boss <= -4:
-                velocidade_giro_boss = velocidade_giro_boss * -1
+            if modo_ataque == False:
+                if angulo_boss >= 4 or angulo_boss <= -4:
+                    velocidade_giro_boss = velocidade_giro_boss * -1
+                    velocidade_mao = velocidade_mao * -1
+            if modo_ataque == True:
+                if angulo_boss >= 4 or angulo_boss <= -4:
+                    velocidade_giro_boss = velocidade_giro_boss * -1
             boss_girando = transform.rotate(boss, angulo_boss)
             retangulo_original = boss.get_rect(topleft=(boss_x, boss_y))
             retangulo_girando = boss_girando.get_rect(center=retangulo_original.center)
             screen.blit(boss_girando, retangulo_girando.topleft)
-            Rhand_x = boss_x-10
+            Rhand_x = boss_x-20
             Rhand_y += -velocidade_mao
-            if Rhand_y >= 520 or Rhand_y <= 420:
-                velocidade_mao = velocidade_mao * -1
+            Rhand_y = max(380, min(Rhand_y, 480))
             screen.blit(Rhand, (Rhand_x, Rhand_y))
             Rhand_hitbox1 = Rect(Rhand_x+40, Rhand_y+40, 80, 75)
             Rhand_hitbox2 = Rect(Rhand_x+60, Rhand_y+112, 45, 35)
@@ -766,8 +783,7 @@ while running:
             hitboxes_inimigas.append(Rhand_hitbox5)
             Lhand_x = boss_x+180
             Lhand_y += velocidade_mao
-            if Lhand_y >= 530 or Lhand_y <= 410:
-                velocidade_mao = velocidade_mao * -1
+            Lhand_y = max(380, min(Lhand_y, 480))
             screen.blit(Lhand, (Lhand_x, Lhand_y))
             Lhand_hitbox1 = Rect(Lhand_x+30, Lhand_y+40, 80, 75)
             Lhand_hitbox2 = Rect(Lhand_x+45, Lhand_y+112, 45, 35)
@@ -784,6 +800,29 @@ while running:
             hitboxes_inimigas.append(Lhand_hitbox3)
             hitboxes_inimigas.append(Lhand_hitbox4)
             hitboxes_inimigas.append(Lhand_hitbox5)
+            if modo_ataque == True:
+                if Lhand_y >= 480 or Lhand_y <= 380:
+                    velocidade_mao = velocidade_mao * -1
+            if (6>tempo_decorrido >= 5) or (14>tempo_decorrido >= 13):
+                if modo_ataque == False:
+                    grito_sorteado = random.choice(gritos_boss)
+                    grito_sorteado.play()
+                modo_ataque = True
+            if modo_ataque == True and modo_rapido == False:
+                velocidade_mao = 20
+                velocidade_giro_boss = 4
+                modo_rapido = True
+            if (10>tempo_decorrido >= 9 or 18>tempo_decorrido >= 17) and modo_rapido == True:
+                modo_ataque = False
+                angulo_boss = 0
+                Rhand_y = 420
+                Lhand_y = 440
+                velocidade_giro_boss = 0.08
+                velocidade_mao = velocidade_giro_boss*11.5
+                modo_rapido = False
+            print(angulo_boss)
+                
+
 
         draw.rect(screen, (102, 51, 0), (20, 20, 200, 70), border_radius=20)
 
