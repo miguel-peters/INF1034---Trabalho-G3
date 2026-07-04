@@ -19,6 +19,8 @@ derrota = False
 vitoria = False
 muda_fase = False
 musica_fase = True
+boss_tocado = False
+
 
 velocidade_boss = 0.8
 boss_x = 900
@@ -66,6 +68,7 @@ estado = {
     'jumpscare_tocado': False,
     'boss_x': 900,
     'boss_vida': 100,
+    'boss_tocado': False,
 }
 
 def resetar_jogo(estado):
@@ -84,9 +87,9 @@ def resetar_jogo(estado):
     estado['tempo_invencivel'] = 2000
     estado['explosoes_ativas'] = []
     estado['jumpscare_tocado'] = False
-    estado[jumpscare_tocado] = False
     estado['boss_x'] = 900
     estado['boss_vida'] = 100
+    estado['boss_tocado'] = False
 
     novos_asteroides = []
     for i in range(8):
@@ -200,7 +203,8 @@ fase = mixer.Sound('sons/fase.mp3')
 fase_fácil = mixer.Sound('sons/fase_fácil.mp3')
 fase_media = mixer.Sound('sons/fase_media_f.mp3')
 fase_final = mixer.Sound('sons/fase_final.mp3')
-boss = mixer.Sound('sons/67boss.mp3')
+boss_song = mixer.Sound('sons/67boss.mp3')
+boss_song.set_volume(0.3)
 
 gritos_boss = [
     mixer.Sound('sons/grito1.mp3'), # Troque pelo nome real dos seus arquivos
@@ -211,7 +215,7 @@ gritos_boss = [
 ]
 
 for grito in gritos_boss:
-    grito.set_volume(0.3)
+    grito.set_volume(0.4)
 
 
 vit.set_volume(0.3)
@@ -747,6 +751,9 @@ while running:
         
         #sixseven boss
         if  180 > tempo_decorrido >= 1 and derrota == False:
+            if boss_vida > 0 and boss_tocado == False:
+                boss_song.play()
+                boss_tocado = True
             if boss_x > 480: #480
                 boss_x -= velocidade_boss*10
             boss_y = -30
@@ -764,6 +771,12 @@ while running:
             screen.blit(boss_girando, retangulo_girando.topleft)
             Rhand_x = boss_x-20
             Rhand_y += -velocidade_mao
+            head_hitbox1 = Rect(boss_x+70, boss_y+80, 170, 160)
+            draw.rect(screen, (255, 255, 255), head_hitbox1, 2)
+            hitboxes_inimigas.append(head_hitbox1)
+            Head_hitbox2 = Rect(boss_x+100, boss_y+240, 110, 350)
+            draw.rect(screen, (255, 255, 255), Head_hitbox2, 2)
+            hitboxes_inimigas.append(Head_hitbox2)
             Rhand_y = max(380, min(Rhand_y, 480))
             screen.blit(Rhand, (Rhand_x, Rhand_y))
             Rhand_hitbox1 = Rect(Rhand_x+40, Rhand_y+40, 80, 75)
@@ -802,8 +815,8 @@ while running:
             hitboxes_inimigas.append(Lhand_hitbox5)
             if modo_ataque == True:
                 if Lhand_y >= 480 or Lhand_y <= 380:
-                    velocidade_mao = velocidade_mao * -1
-            if (6>tempo_decorrido >= 5) or (14>tempo_decorrido >= 13):
+                    velocidade_mao = velocidade_mao * -1 #tempo para comecar a atacar
+            if (6>tempo_decorrido >= 5) or (14>tempo_decorrido >= 13 or 22>tempo_decorrido >= 21) and modo_ataque == False:
                 if modo_ataque == False:
                     grito_sorteado = random.choice(gritos_boss)
                     grito_sorteado.play()
@@ -811,8 +824,8 @@ while running:
             if modo_ataque == True and modo_rapido == False:
                 velocidade_mao = 20
                 velocidade_giro_boss = 4
-                modo_rapido = True
-            if (10>tempo_decorrido >= 9 or 18>tempo_decorrido >= 17) and modo_rapido == True:
+                modo_rapido = True #tempo para parar o ataque
+            if (10>tempo_decorrido >= 9 or 18>tempo_decorrido >= 17 or 26>tempo_decorrido >= 25) and modo_rapido == True:
                 modo_ataque = False
                 angulo_boss = 0
                 Rhand_y = 420
@@ -820,7 +833,7 @@ while running:
                 velocidade_giro_boss = 0.08
                 velocidade_mao = velocidade_giro_boss*11.5
                 modo_rapido = False
-            print(angulo_boss)
+            
                 
 
 
@@ -923,18 +936,18 @@ while running:
         screen.blit(texto4, (25, 480))
 
         texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
-        screen.blit(texto, (230,20))
+        screen.blit(texto, (30,100))
 
 
     
         if tempo_decorrido >= 0:
-            draw.rect(screen, (102, 51, 0), (580, 20, 200, 70), border_radius=20)
-            sixseven = transform.scale(sixseven, (100, 50))
+            draw.rect(screen, (102, 51, 0), (230, 20, 200, 70), border_radius=20)
+            sixseven = transform.scale(boss, (25, 50))
             barra_largura_atual = boss_vida * 1.5
-            draw.rect(screen, (0, 0, 0), (590, 45, 150, 20), border_radius=20)
+            draw.rect(screen, (0, 0, 0), (240, 45, 150, 20), border_radius=20)
             if barra_largura_atual > 0:
-                draw.rect(screen, (204, 0, 0), (590, 45, barra_largura_atual, 20), border_radius=20)
-            screen.blit(sixseven, (740, 32), (33, 0, 200, 200))
+                draw.rect(screen, (204, 0, 0), (240, 45, barra_largura_atual, 20), border_radius=20)
+            screen.blit(sixseven, (390, 32))
 
         # -----MORTE + GRAVAÇÃO DE RANKING-----
 
