@@ -31,6 +31,7 @@ Lhand_y = 480
 velocidade_mao = velocidade_giro_boss*11.5
 modo_ataque = False
 modo_rapido = False
+qtd_bats = 10
 
 boss_vida_max = 100
 boss_vida = 100
@@ -69,6 +70,7 @@ estado = {
     'boss_x': 900,
     'boss_vida': 100,
     'boss_tocado': False,
+    'bando_de_bats': [],
 }
 
 def resetar_jogo(estado):
@@ -103,6 +105,12 @@ def resetar_jogo(estado):
     for i in range(10):
         novas_naves.append(naveNPC(800, 0, opcoes_de_cores))
     estado['bando_de_naves'] = novas_naves
+
+    # recria os morcegos inimigos
+    novos_bats = []
+    for i in range(qtd_bats):
+        novos_bats.append(batNPC(800, 0, opcoes_de_cores_bat))
+    estado['bando_de_bats'] = novos_bats
 
     # recria os tiros inimigos
     estado['lista'] = tiros()
@@ -211,7 +219,7 @@ gritos_boss = [
     mixer.Sound('sons/grito2.mp3'),
     mixer.Sound('sons/grito3.mp3'),
     mixer.Sound('sons/grito4.mp3'),
-    mixer.Sound('sons/scream.mp3')
+    mixer.Sound('sons/scream3.mp3')
 ]
 
 for grito in gritos_boss:
@@ -455,6 +463,82 @@ for i in range(10): # Pode colocar 10, 20...
     nova_nave = naveNPC(800, 0, opcoes_de_cores)
     bando_de_naves.append(nova_nave)
 
+
+#morcegos 67
+
+bat_67 = []
+
+
+for i in range(2):
+    bat_67.append(transform.scale(image.load(f"imagens/bat_6{i+7}.png"), (80, 80)))
+
+opcoes_de_cores_bat = [bat_67]
+
+class batNPC:
+    def __init__(self, limite_x, chao_y, opcoes_de_cores_bat):
+        #posição inicial na tela
+        self.x = random.randint(570, 600)
+        self.y = random.randint(240, 370)
+        # comeca andando para a esquerda (-2)
+        
+        self.velocidade_x = random.choice([-4,-3,-2])
+        self.velocidade_y = random.choice([1,2,3,4,-1,-2,-3,-4,0])
+
+
+        self.minha_animacao = random.choice(opcoes_de_cores_bat)
+        self.frame_atual = random.randint(0,  len(self.minha_animacao) - 1)
+        self.tempo_animacao = 0
+
+        
+
+        self.bat_hitbox = Rect(self.x, self.y, tam+7, tam+10)
+
+    def atualizar_e_desenhar(self, tela, dt, lista_animacao, mult_vel):
+        #movimento
+        self.x = self.x + (self.velocidade_x * mult_vel)
+        self.y = self.y + (self.velocidade_y * mult_vel)
+
+        self.bat_hitbox.x = self.x + 22
+        self.bat_hitbox.y = self.y +10
+
+        #bater na parede e virar
+        if self.x <= -20 or self.x >= 790:
+            self.velocidade_x = self.velocidade_x * -1
+        if self.y <= -20 or self.y >= 570:
+            self.velocidade_y = self.velocidade_y * -1
+
+        #tempo da Animação
+        self.tempo_animacao += dt
+        if self.tempo_animacao > 80: # 80 milissegundos para trocar de frame
+            self.frame_atual += 1
+            if self.frame_atual >= len(lista_animacao):
+                self.frame_atual = 0
+            self.tempo_animacao = 0
+
+        #desenho
+        imagem_atual = lista_animacao[self.frame_atual]
+        
+        # se velocidade for negativa (esquerda), espelha a imagem
+        if self.velocidade_x < 0:
+            imagem_atual = transform.flip(imagem_atual, True, False)
+            
+        tela.blit(imagem_atual, (self.x, self.y))
+
+bando_de_bats = []
+
+for i in range(qtd_bats): # Pode colocar 10, 20...
+    # Passamos as opções de cores para ele sortear quando nascer
+    novo_bat = batNPC(800, 0, opcoes_de_cores_bat)
+    bando_de_bats.append(novo_bat)
+
+
+
+
+
+
+
+
+
 #naves inimigas modo médio
 def tiros():
     lista_inimigo = []
@@ -508,7 +592,6 @@ while running:
                 else:
                     if len(texto_nome) < 6:
                         texto_nome += ev.unicode
-
         elif tela_atual == 'jogo':
             if ev.type == MOUSEBUTTONDOWN:
                 if ev.button == 1:
@@ -533,13 +616,21 @@ while running:
                     time_sixseven = random.randint(20, 80)
                     boss_x = estado['boss_x']
                     boss_vida = estado['boss_vida']
+                    bando_de_bats = estado['bando_de_bats']
+                    modo_ataque = False
+                    modo_rapido = False
+                    angulo_boss = 0
+                    velocidade_giro_boss = 0.08
+                    Rhand_y = 380
+                    Lhand_y = 480
+                    velocidade_mao = velocidade_giro_boss * 11.5
             
         if valor_opacidade < 255:
             valor_opacidade += 0.1
             
         sixseven.set_alpha(int(valor_opacidade))
         screen.blit(sixseven, (75, 170))
-
+        
         if ev.type == KEYDOWN:
             if tela_atual == 'inicio':
                 if ev.key == K_DOWN: opcao_selecionada = (opcao_selecionada + 1) % len(opcoes)
@@ -816,7 +907,7 @@ while running:
             if modo_ataque == True:
                 if Lhand_y >= 480 or Lhand_y <= 380:
                     velocidade_mao = velocidade_mao * -1 #tempo para comecar a atacar
-            if (6>tempo_decorrido >= 5) or (14>tempo_decorrido >= 13 or 22>tempo_decorrido >= 21) and modo_ataque == False:
+            if ((6>tempo_decorrido >= 5) or (14>tempo_decorrido >= 13) or (22>tempo_decorrido >= 21)) and modo_ataque == False:
                 if modo_ataque == False:
                     grito_sorteado = random.choice(gritos_boss)
                     grito_sorteado.play()
@@ -833,6 +924,17 @@ while running:
                 velocidade_giro_boss = 0.08
                 velocidade_mao = velocidade_giro_boss*11.5
                 modo_rapido = False
+                bando_de_bats = [] # Limpa a lista principal
+                for i in range(qtd_bats):
+                    bando_de_bats.append(batNPC(Lhand_x, Lhand_y, opcoes_de_cores_bat))                
+            if modo_ataque == True and modo_rapido == True:
+                for bat in bando_de_bats:
+                    bat.atualizar_e_desenhar(screen, dt, bat.minha_animacao, aumento_vel)
+                    hitboxes_inimigas.append(bat.bat_hitbox)
+                    draw.rect(screen, (255, 0, 0), (bat.bat_hitbox), 2)
+            
+            
+        
             
                 
 
