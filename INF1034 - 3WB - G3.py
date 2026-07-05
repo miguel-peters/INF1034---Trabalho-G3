@@ -30,6 +30,8 @@ Rhand_y = 380
 Lhand_y = 480
 velocidade_mao = velocidade_giro_boss*11.5
 modo_ataque = False
+modo_ataque2 = False
+modo_ataque3 = False
 modo_rapido = False
 qtd_bats = 10
 
@@ -114,6 +116,7 @@ def resetar_jogo(estado):
 
     # recria os tiros inimigos
     estado['lista'] = tiros()
+    estado['lista_boss'] = tiros_boss()
 # ---TELA DE LOGIN---
 
 # tela de início
@@ -212,7 +215,7 @@ fase_fácil = mixer.Sound('sons/fase_fácil.mp3')
 fase_media = mixer.Sound('sons/fase_media_f.mp3')
 fase_final = mixer.Sound('sons/fase_final.mp3')
 boss_song = mixer.Sound('sons/67boss.mp3')
-boss_song.set_volume(0.3)
+boss_song.set_volume(0.6)
 
 gritos_boss = [
     mixer.Sound('sons/grito1.mp3'), # Troque pelo nome real dos seus arquivos
@@ -548,7 +551,16 @@ def tiros():
         lista_inimigo.append([x_inicial, y_inicial])
     return lista_inimigo
 
+def tiros_boss():
+    lista_inimigo = []
+    for i in range(10):
+        x_inicial = random.randint(800, 1200)
+        y_inicial = random.randint(50,550)
+        lista_inimigo.append([x_inicial, y_inicial])
+    return lista_inimigo
+
 lista = tiros()
+lista_boss = tiros_boss()
 
 current_frame_I = 0
 anim_time_I = 0
@@ -618,6 +630,8 @@ while running:
                     boss_vida = estado['boss_vida']
                     bando_de_bats = estado['bando_de_bats']
                     modo_ataque = False
+                    modo_ataque2 = False
+                    modo_ataque3 = False
                     modo_rapido = False
                     angulo_boss = 0
                     velocidade_giro_boss = 0.08
@@ -690,7 +704,8 @@ while running:
             modo_4 = True
         if keys[K_2] and modo_4:
             life = 3
-
+        if keys[K_o]:
+            tempo_decorrido += 60
         if keys[K_g]:
             modo_g = True
         if keys[K_u] and modo_g:
@@ -849,11 +864,11 @@ while running:
                 boss_x -= velocidade_boss*10
             boss_y = -30
             angulo_boss += velocidade_giro_boss
-            if modo_ataque == False:
+            if modo_ataque == False and modo_ataque2 == False and modo_ataque3 == False:
                 if angulo_boss >= 4 or angulo_boss <= -4:
                     velocidade_giro_boss = velocidade_giro_boss * -1
                     velocidade_mao = velocidade_mao * -1
-            if modo_ataque == True:
+            if modo_ataque == True or modo_ataque2 == True or modo_ataque3 == True:
                 if angulo_boss >= 4 or angulo_boss <= -4:
                     velocidade_giro_boss = velocidade_giro_boss * -1
             boss_girando = transform.rotate(boss, angulo_boss)
@@ -868,7 +883,8 @@ while running:
             Head_hitbox2 = Rect(boss_x+100, boss_y+240, 110, 350)
             draw.rect(screen, (255, 255, 255), Head_hitbox2, 2)
             hitboxes_inimigas.append(Head_hitbox2)
-            Rhand_y = max(380, min(Rhand_y, 480))
+            if modo_ataque2 == False:
+                Rhand_y = max(380, min(Rhand_y, 480))
             screen.blit(Rhand, (Rhand_x, Rhand_y))
             Rhand_hitbox1 = Rect(Rhand_x+40, Rhand_y+40, 80, 75)
             Rhand_hitbox2 = Rect(Rhand_x+60, Rhand_y+112, 45, 35)
@@ -887,7 +903,8 @@ while running:
             hitboxes_inimigas.append(Rhand_hitbox5)
             Lhand_x = boss_x+180
             Lhand_y += velocidade_mao
-            Lhand_y = max(380, min(Lhand_y, 480))
+            if modo_ataque2 == False:
+                Lhand_y = max(380, min(Lhand_y, 480))
             screen.blit(Lhand, (Lhand_x, Lhand_y))
             Lhand_hitbox1 = Rect(Lhand_x+30, Lhand_y+40, 80, 75)
             Lhand_hitbox2 = Rect(Lhand_x+45, Lhand_y+112, 45, 35)
@@ -913,28 +930,46 @@ while running:
                     modo_ataque = True
             
             def end_ataque(y):
-                global modo_ataque, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats
+                global modo_ataque, modo_ataque2, modo_ataque3, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats, lista_boss
                 if (y+1>tempo_decorrido >= y) and modo_rapido == True:
                     modo_ataque = False
+                    modo_ataque2 = False
+                    modo_ataque3 = False
                     angulo_boss = 0
                     Rhand_y = 420
                     Lhand_y = 440
                     velocidade_giro_boss = 0.08
                     velocidade_mao = velocidade_giro_boss*11.5
-                    modo_rapido = False
                     bando_de_bats = [] # limpa a lista principal
                     for i in range(qtd_bats):
-                        bando_de_bats.append(batNPC(Lhand_x, Lhand_y, opcoes_de_cores_bat)) 
-            ataque(5)
+                        bando_de_bats.append(batNPC(Lhand_x, Lhand_y, opcoes_de_cores_bat))
+                    lista_boss = tiros_boss()
+                    modo_rapido = False
+            def ataque2(x):
+                global modo_ataque2, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats
+                if (x+1>tempo_decorrido >= x) and modo_ataque2 == False:
+                    if modo_ataque2 == False:
+                        grito_sorteado = random.choice(gritos_boss)
+                        grito_sorteado.play()
+                        Rhand_y = 120
+                        Lhand_y = 140
+                    modo_ataque2 = True
+            # ataque(5)
+            ataque2(5)
             ataque(13)
-            ataque(21)
+            # ataque2(13)
+            # ataque(21)]
+            ataque2(21)
             end_ataque(9)
             end_ataque(17)
             end_ataque(25)
-            if modo_ataque == True:
+            if modo_ataque == True or modo_ataque3 == True:
                 if Lhand_y >= 480 or Lhand_y <= 380:
-                    velocidade_mao = velocidade_mao * -1 #tempo para comecar a atacar
-            if modo_ataque == True and modo_rapido == False:
+                    velocidade_mao = velocidade_mao * -1
+            if modo_ataque2 == True:
+                if Lhand_y >=180 or Lhand_y <= 80:
+                    velocidade_mao = velocidade_mao * -1
+            if (modo_ataque == True or modo_ataque2 == True or modo_ataque3 == True) and modo_rapido == False:
                 velocidade_mao = 20
                 velocidade_giro_boss = 4
                 modo_rapido = True #tempo para parar o ataque             
@@ -943,6 +978,26 @@ while running:
                     bat.atualizar_e_desenhar(screen, dt, bat.minha_animacao, aumento_vel)
                     hitboxes_inimigas.append(bat.bat_hitbox)
                     draw.rect(screen, (255, 0, 0), (bat.bat_hitbox), 2)
+            if modo_ataque2 == True and modo_rapido == True:
+                for pos in lista_boss:
+                    pos[0] = pos[0] - 0.8 * dt
+                    
+                    screen.blit(shot_imagem[current_frame_S], (pos[0], pos[1]), (0, 0, 45, 15))
+                    
+                    laser_hitbox = Rect(pos[0], pos[1], 45, 15)
+                    hitboxes_inimigas.append(laser_hitbox)
+                    draw.rect(screen, (255, 0, 0), (laser_hitbox), 2)
+                    if pos[0] < -100:
+                        pos[0] = 800
+                        pos[1] = random.randint(0, 600)
+                anim_time_S += dt
+                anim_time_sec_S = anim_time_S / 1000
+
+                if anim_time_sec_S > 0.1:
+                    current_frame_S += 1
+                    if current_frame_S > 4:
+                        current_frame_S = 0
+                    anim_time_S = 0
             if boss_vida <= 0:
                 if vitoria == False:
                     vit.play()
@@ -963,7 +1018,8 @@ while running:
                 with open("ranking.txt", "w") as arquivo:
                     for jogador, score in top5:
                         arquivo.write(f"{jogador},{score}\n")
-           
+
+
             
             
         
