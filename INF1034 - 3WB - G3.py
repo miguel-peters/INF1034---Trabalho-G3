@@ -640,7 +640,7 @@ while running:
                     if opcao_selecionada == 0:valor_opacidade = 0
                     else: quit(); sys.exit()
             if tela_atual == 'jogo' and ev.key == K_SPACE:
-                boss_tomar_dano(1)
+                boss_tomar_dano(28)
 
     clock.tick(60)
     dt = clock.get_time()
@@ -658,7 +658,7 @@ while running:
     if tela_atual == 'login':
         tela_inicio()          
     elif tela_atual == 'jogo':
-        if derrota == False:
+        if derrota == False and vitoria == False:
             tempo_atual = time.get_ticks()
             tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
         
@@ -669,7 +669,7 @@ while running:
             aumento_vel = 1
 
         #coracoes
-        if derrota == False:
+        if derrota == False and vitoria == False:
             timer_spawn_vida += dt
             
             if timer_spawn_vida > 30000:
@@ -705,18 +705,18 @@ while running:
 
         #nave principal
 
-        if keys[K_a] and life!=0 and pos_x > 0:
+        if keys[K_a] and life!=0 and pos_x > 0 and vitoria == False:
             esquerda = True
             direita = False
             pos_x -= 0.3*dt
-        elif keys[K_d] and life!=0 and pos_x < 720:
+        elif keys[K_d] and life!=0 and pos_x < 720 and vitoria == False:
             direita = True
             esquerda = False
             pos_x += 0.3*dt
         
-        if keys[K_w] and life!=0 and pos_y > 0:
+        if keys[K_w] and life!=0 and pos_y > 0 and vitoria == False:
             pos_y -= 0.3*dt
-        elif keys[K_s] and life!=0 and pos_y < 560:
+        elif keys[K_s] and life!=0 and pos_y < 560 and vitoria == False:
             pos_y += 0.3*dt
 
         anim_time_R += dt
@@ -780,7 +780,7 @@ while running:
         #vidas
         
         #asteroides
-        if  120 > tempo_decorrido > 60 and derrota == False:
+        if  120 > tempo_decorrido > 60 and derrota == False and vitoria == False:
             for ast in lista_asteroides:
                 ast[0] -= vel_ast 
                 
@@ -904,34 +904,66 @@ while running:
             hitboxes_inimigas.append(Lhand_hitbox3)
             hitboxes_inimigas.append(Lhand_hitbox4)
             hitboxes_inimigas.append(Lhand_hitbox5)
+            def ataque(x):
+                global modo_ataque, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats
+                if (x+1>tempo_decorrido >= x) and modo_ataque == False:
+                    if modo_ataque == False:
+                        grito_sorteado = random.choice(gritos_boss)
+                        grito_sorteado.play()
+                    modo_ataque = True
+            
+            def end_ataque(y):
+                global modo_ataque, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats
+                if (y+1>tempo_decorrido >= y) and modo_rapido == True:
+                    modo_ataque = False
+                    angulo_boss = 0
+                    Rhand_y = 420
+                    Lhand_y = 440
+                    velocidade_giro_boss = 0.08
+                    velocidade_mao = velocidade_giro_boss*11.5
+                    modo_rapido = False
+                    bando_de_bats = [] # limpa a lista principal
+                    for i in range(qtd_bats):
+                        bando_de_bats.append(batNPC(Lhand_x, Lhand_y, opcoes_de_cores_bat)) 
+            ataque(5)
+            ataque(13)
+            ataque(21)
+            end_ataque(9)
+            end_ataque(17)
+            end_ataque(25)
             if modo_ataque == True:
                 if Lhand_y >= 480 or Lhand_y <= 380:
                     velocidade_mao = velocidade_mao * -1 #tempo para comecar a atacar
-            if ((6>tempo_decorrido >= 5) or (14>tempo_decorrido >= 13) or (22>tempo_decorrido >= 21)) and modo_ataque == False:
-                if modo_ataque == False:
-                    grito_sorteado = random.choice(gritos_boss)
-                    grito_sorteado.play()
-                modo_ataque = True
             if modo_ataque == True and modo_rapido == False:
                 velocidade_mao = 20
                 velocidade_giro_boss = 4
-                modo_rapido = True #tempo para parar o ataque
-            if (10>tempo_decorrido >= 9 or 18>tempo_decorrido >= 17 or 26>tempo_decorrido >= 25) and modo_rapido == True:
-                modo_ataque = False
-                angulo_boss = 0
-                Rhand_y = 420
-                Lhand_y = 440
-                velocidade_giro_boss = 0.08
-                velocidade_mao = velocidade_giro_boss*11.5
-                modo_rapido = False
-                bando_de_bats = [] # Limpa a lista principal
-                for i in range(qtd_bats):
-                    bando_de_bats.append(batNPC(Lhand_x, Lhand_y, opcoes_de_cores_bat))                
+                modo_rapido = True #tempo para parar o ataque             
             if modo_ataque == True and modo_rapido == True:
                 for bat in bando_de_bats:
                     bat.atualizar_e_desenhar(screen, dt, bat.minha_animacao, aumento_vel)
                     hitboxes_inimigas.append(bat.bat_hitbox)
                     draw.rect(screen, (255, 0, 0), (bat.bat_hitbox), 2)
+            if boss_vida <= 0:
+                if vitoria == False:
+                    vit.play()
+                    vitoria = True
+                pos_x += 0.3*dt
+                blur += 0.05*dt
+                blur_surface.set_alpha(blur) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
+                screen.blit(blur_surface, (0, 0))
+                if blur >= 250:
+                    textoVitoria = fonteDerrota.render('MISSION PASSED', True, VERDE)
+                    screen.blit(textoVitoria, (150,100))
+                tempo_morte = time.get_ticks()//1000
+                
+                top5.append((nome, tempo_decorrido))
+                top5.sort(key=lambda x: x[1], reverse=True)
+                top5 = top5[:5]
+                
+                with open("ranking.txt", "w") as arquivo:
+                    for jogador, score in top5:
+                        arquivo.write(f"{jogador},{score}\n")
+           
             
             
         
@@ -949,7 +981,7 @@ while running:
 
         player_hitbox = Rect(pos_x, pos_y, 79.5, 40.5)
 
-        if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != 0 and not modo_invencivel:
+        if player_hitbox.collidelist(hitboxes_inimigas) != -1 and life != 0 and not modo_invencivel and vitoria == False:
             life -= 1
             if life == 1 or life == 2:
                 som_dano.play()
