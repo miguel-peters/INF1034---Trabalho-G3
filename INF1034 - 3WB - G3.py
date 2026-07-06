@@ -72,7 +72,7 @@ estado = {
     'lista': [],
     'jumpscare_tocado': False,
     'boss_x': 900,
-    'boss_vida': 100,
+    'boss_vida': 1000,
     'boss_tocado': False,
     'bando_de_bats': [],
     'atirar': False,
@@ -95,7 +95,7 @@ def resetar_jogo(estado):
     estado['explosoes_ativas'] = []
     estado['jumpscare_tocado'] = False
     estado['boss_x'] = 900
-    estado['boss_vida'] = 100
+    estado['boss_vida'] = 1000
     estado['boss_tocado'] = False
     estado['atirar'] = False
 
@@ -236,7 +236,6 @@ gritos_boss = [
 
 for grito in gritos_boss:
     grito.set_volume(0.4)
-
 
 vit.set_volume(0.3)
 som_dano.set_volume(0.3)
@@ -435,6 +434,8 @@ class Tiro:
         self.tempo_animacao = 0
 
         self.hitbox = Rect(self.x, self.y, 30, 15)
+
+        
 
 
     def atualizar(self, dt):
@@ -730,8 +731,7 @@ while running:
                     if opcao_selecionada == 0: tela_atual = 'login' 
                     if opcao_selecionada == 0:valor_opacidade = 0
                     else: quit(); sys.exit()
-            if tela_atual == 'jogo' and ev.key == K_SPACE:
-                boss_tomar_dano(28)
+
 
 
     clock.tick(60)
@@ -785,7 +785,7 @@ while running:
         if keys[K_2] and modo_4:
             life = 3
         if keys[K_o]:
-            tempo_decorrido += 60
+            tempo_decorrido += 115
         if keys[K_g]:
             modo_g = True
         if keys[K_u] and modo_g:
@@ -856,7 +856,7 @@ while running:
         elif tempo_decorrido < 120:
             screen.blit(mapa_2, (0,0))
             tocar_musica("sons/fase_media_f.mp3")
-        else:
+        elif tempo_decorrido >= 120 and vitoria == False:
             tocar_musica("sons/67boss.mp3")
 
 
@@ -1067,26 +1067,6 @@ while running:
                     if current_frame_S > 4:
                         current_frame_S = 0
                     anim_time_S = 0
-            if boss_vida <= 0:
-                if vitoria == False:
-                    vit.play()
-                    vitoria = True
-                pos_x += 0.3*dt
-                blur += 0.05*dt
-                blur_surface.set_alpha(blur) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
-                screen.blit(blur_surface, (0, 0))
-                if blur >= 250:
-                    textoVitoria = fonteDerrota.render('MISSION PASSED', True, VERDE)
-                    screen.blit(textoVitoria, (150,100))
-                tempo_morte = time.get_ticks()//1000
-                
-                top5.append((nome, tempo_decorrido))
-                top5.sort(key=lambda x: x[1], reverse=True)
-                top5 = top5[:5]
-                
-                with open("ranking.txt", "w") as arquivo:
-                    for jogador, score in top5:
-                        arquivo.write(f"{jogador},{score}\n")
 
 
             
@@ -1122,15 +1102,20 @@ while running:
                 explosoes_ativas.append(nova_explosao)
                 print(f"{nome}: {tempo_morte:.1f}s")
                 
-                top5.append((nome, tempo_decorrido))
-                top5.sort(key=lambda x: x[1], reverse=True)
-                top5 = top5[:5]
-                
-                with open("ranking.txt", "w") as arquivo:
-                    for jogador, score in top5:
-                        arquivo.write(f"{jogador},{score}\n")
+
             modo_invencivel = True
             tempo_invencivel = 3000
+        
+        if vitoria == True:
+            top5.append((nome, tempo_decorrido))
+            top5.sort(key=lambda x: x[1], reverse=False)
+            top5 = top5[:5]
+                
+            with open("ranking.txt", "w") as arquivo:
+                for jogador, score in top5:
+                    arquivo.write(f"{jogador},{score}\n")
+        
+
 
         if tempo_decorrido == time_sixseven and derrota == False:
             screen.blit(sixseven_gigante, (-50,0))
@@ -1155,6 +1140,8 @@ while running:
             pos_y = 300
             pos_yA += 0.05*dt
             screen.blit(arma, (pos_xA, pos_yA))
+            
+        if tempo_decorrido>120:
             atirar = True
 
 
@@ -1187,11 +1174,13 @@ while running:
         texto2 = fonteLAY.render('D - direita', True, (255, 255, 255))
         texto3 = fonteLAY.render('w - cima', True, (255, 255, 255))
         texto4 = fonteLAY.render('S - baixo', True, (255, 255, 255))
+        texto5 = fonteLAY.render('J - atirar', True, (255, 255, 255))
 
         screen.blit(texto1, (25, 420))
         screen.blit(texto2, (25, 440))
         screen.blit(texto3, (25, 460))
         screen.blit(texto4, (25, 480))
+        screen.blit(texto5, (25, 500))
 
         texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
         screen.blit(texto, (30,100))
@@ -1280,15 +1269,26 @@ while running:
             tiros_para_remover = []
 
             for tiro in lista_tiros:
+
                 tiro.atualizar(dt)
                 tiro.desenhar(screen)
+
+                if tiro.hitbox.colliderect(head_hitbox1):
+                    boss_tomar_dano(1)
+                    tiros_para_remover.append(tiro)
+
+                elif tiro.hitbox.colliderect(Head_hitbox2):
+                    boss_tomar_dano(1)
+                    tiros_para_remover.append(tiro)
+
                 if tiro.fora_da_tela():
                     tiros_para_remover.append(tiro)
 
             for tiro in tiros_para_remover:
-                lista_tiros.remove(tiro)
+                if tiro in lista_tiros:
+                    lista_tiros.remove(tiro)
 
-        if tempo_decorrido > 180:
+        if boss_vida <= 0:
             if vitoria == False:
                 vit.play()
                 vitoria = True
