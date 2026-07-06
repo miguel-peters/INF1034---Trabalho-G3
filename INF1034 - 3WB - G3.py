@@ -18,9 +18,11 @@ tempo_invencivel = 2000
 derrota = False
 vitoria = False
 muda_fase = False
-musica_fase = True
+musica_fase = ''
 boss_tocado = False
+atirar = False
 
+# -----BOSS-----
 
 velocidade_boss = 0.8
 boss_x = 900
@@ -55,7 +57,7 @@ estado = {
     'derrota': False,
     'vitoria': False,
     'muda_fase': False,
-    'musica_fase': True,
+    'musica_fase': '',
     'tempo_decorrido': 0,
     'tempo_inicial': time.get_ticks(),
     'pos_x': 100,
@@ -73,13 +75,14 @@ estado = {
     'boss_vida': 100,
     'boss_tocado': False,
     'bando_de_bats': [],
+    'atirar': False,
 }
 
 def resetar_jogo(estado):
     estado['life'] = 3
     estado['derrota'] = False
     estado['vitoria'] = False
-    estado['muda_fase'] = False
+    estado['muda_fase'] = ''
     estado['musica_fase'] = True
     estado['tempo_decorrido'] = 0
     estado['tempo_inicial'] = time.get_ticks()
@@ -94,6 +97,7 @@ def resetar_jogo(estado):
     estado['boss_x'] = 900
     estado['boss_vida'] = 100
     estado['boss_tocado'] = False
+    estado['atirar'] = False
 
     novos_asteroides = []
     for i in range(8):
@@ -201,8 +205,16 @@ top5 = top5[:5]
 
 # ---SONS---
 
-mixer.music.load("sons/drake.mp3")
-# mixer.music.play(-1)
+def tocar_musica(arquivo):
+    global musica_fase
+
+    if musica_fase != arquivo:
+        mixer.music.stop()
+        mixer.music.load(arquivo)
+        mixer.music.play(-1)
+        mixer.music.set_volume(0.3)
+        musica_fase = arquivo
+    
 
 vit = mixer.Sound('sons/vitoriaGTA.mp3')
 som_dano = mixer.Sound('sons/mario-power-down.mp3')
@@ -211,9 +223,6 @@ som_imortal = mixer.Sound('sons/imortal.mp3')
 som_repair = mixer.Sound('sons/repair.mp3')
 scream = mixer.Sound('sons/scream2.mp3')
 fase = mixer.Sound('sons/fase.mp3')
-fase_fácil = mixer.Sound('sons/fase_fácil.mp3')
-fase_media = mixer.Sound('sons/fase_media_f.mp3')
-fase_final = mixer.Sound('sons/fase_final.mp3')
 boss_song = mixer.Sound('sons/67boss.mp3')
 boss_song.set_volume(0.6)
 
@@ -236,7 +245,6 @@ som_imortal.set_volume(0.3)
 som_repair.set_volume(0.3)
 scream.set_volume(0.3)
 fase.set_volume(0.3)
-fase_media.set_volume(0.3)
 
 #explosao
 animacao_explosao = []
@@ -397,6 +405,75 @@ for i in range(6):
     imagem_ship_L = transform.scale(imagem_ship_L, (79.5, 40.5))
     ship_animation_L.append(imagem_ship_L)
 esquerda = False
+
+#tiro da nave principal
+
+tiro_animacao = []
+lista_tiros = []
+tempo_tiro = 0
+intervalo_tiro = 150   # milissegundos
+
+for i in range(5):      # quantidade de frames
+    img = image.load(f"inimigo_medio/Shooting/Shot{i}.png")
+    img = transform.scale(img, (30, 15))
+    tiro_animacao.append(img)
+
+class Tiro:
+
+    def __init__(self, x, y, direita):
+        self.x = x
+
+        self.y = y
+
+        self.direita = direita
+
+        self.velocidade = 12
+
+        self.animacao = tiro_animacao
+
+        self.frame = 0
+        self.tempo_animacao = 0
+
+        self.hitbox = Rect(self.x, self.y, 30, 15)
+
+
+    def atualizar(self, dt):
+
+        # movimento
+        if self.direita:
+            self.x += self.velocidade
+        else:
+            self.x -= self.velocidade
+
+        # hitbox
+        self.hitbox.x = self.x
+        self.hitbox.y = self.y
+
+        # animação
+        self.tempo_animacao += dt
+
+        if self.tempo_animacao > 60:
+
+            self.frame += 1
+
+            if self.frame >= len(self.animacao):
+                self.frame = 0
+
+            self.tempo_animacao = 0
+
+    def desenhar(self, tela):
+
+        imagem = self.animacao[self.frame]
+
+        if not self.direita:
+            imagem = transform.flip(imagem, True, False)
+
+        tela.blit(imagem, (self.x, self.y))
+
+    def fora_da_tela(self):
+
+        return self.x > 820 or self.x < -40
+    
 
 #naves inimigas
 
@@ -656,8 +733,10 @@ while running:
             if tela_atual == 'jogo' and ev.key == K_SPACE:
                 boss_tomar_dano(28)
 
+
     clock.tick(60)
     dt = clock.get_time()
+    tempo_tiro += dt
     keys = key.get_pressed()
 
     if tela_atual == 'inicio':
@@ -672,6 +751,7 @@ while running:
     if tela_atual == 'login':
         tela_inicio()          
     elif tela_atual == 'jogo':
+
         if derrota == False and vitoria == False:
             tempo_atual = time.get_ticks()
             tempo_decorrido = (tempo_atual - tempo_inicial) // 1000
@@ -765,28 +845,20 @@ while running:
         if tempo_decorrido < 60 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
             screen.blit(imagem_ceu, (0, 0))
 
+        if 60 < tempo_decorrido < 120 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
+            screen.blit(imagem_ceu, (0, 0))
+
         # if 62 > tempo_decorrido >= 60 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
         #     screen.blit(mapa_2, (0,0))
 
-        if 120 > tempo_decorrido >= 60:
+        if tempo_decorrido < 60:
+            tocar_musica("sons/fase_fácil.mp3")
+        elif tempo_decorrido < 120:
             screen.blit(mapa_2, (0,0))
-            if muda_fase == False:
-                fase.play()
-                muda_fase = True
-                musica_fase = False
-            if musica_fase == False:
-                fase_media.play()
-                musica_fase = True
+            tocar_musica("sons/fase_media_f.mp3")
+        else:
+            tocar_musica("sons/67boss.mp3")
 
-        if tempo_decorrido >= 120:
-            screen.blit(mapa_3, (0,0))
-            if muda_fase == False:
-                fase.play()
-                muda_fase = True
-                musica_fase = False
-            if musica_fase == False:
-                fase_final.play()
-                musica_fase = True
 
         #inimigos
 
@@ -856,10 +928,7 @@ while running:
 
         
         #sixseven boss
-        if  180 > tempo_decorrido >= 1 and derrota == False:
-            if boss_vida > 0 and boss_tocado == False:
-                boss_song.play()
-                boss_tocado = True
+        if  120 < tempo_decorrido and derrota == False:
             if boss_x > 480: #480
                 boss_x -= velocidade_boss*10
             boss_y = -30
@@ -955,14 +1024,14 @@ while running:
                         Lhand_y = 140
                     modo_ataque2 = True
             # ataque(5)
-            ataque2(5)
-            ataque(13)
+            ataque2(125)
+            ataque(133)
             # ataque2(13)
             # ataque(21)]
-            ataque2(21)
-            end_ataque(9)
-            end_ataque(17)
-            end_ataque(25)
+            ataque2(171)
+            end_ataque(129)
+            end_ataque(137)
+            end_ataque(175)
             if modo_ataque == True or modo_ataque3 == True:
                 if Lhand_y >= 480 or Lhand_y <= 380:
                     velocidade_mao = velocidade_mao * -1
@@ -1081,15 +1150,14 @@ while running:
             elif esquerda:
                 screen.blit(ship_animation_L[current_frame_L], (pos_x,pos_y), (0,0,79.5,40.5))
 
-        # if 25 > tempo_decorrido >= 20:
-        #     pos_x = 350
-        #     pos_y = 300
-        #     pos_yA += 0.05*dt
-        #     screen.blit(arma, (pos_xA, pos_yA))
-        #     modo_boss = True
+        if 120 > tempo_decorrido > 117:
+            pos_x = 350
+            pos_y = 300
+            pos_yA += 0.05*dt
+            screen.blit(arma, (pos_xA, pos_yA))
+            atirar = True
 
-        # if modo_boss == True:
-        #     screen.blit(shot_imagem[current_frame_S], (pos_x-10, pos_y+15), (0,0,45,15))
+
 
         # -----LAYOUT DO JOGO-----
         vida = transform.scale(vida, (100, 50))
@@ -1160,7 +1228,6 @@ while running:
         texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
         
         if derrota == True:
-            fase_media.stop()
             screen.blit(blur_surface, (0, 0))
             texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
             screen.blit(texto_titulo_top, (550, 120))
@@ -1197,6 +1264,30 @@ while running:
                 if coracao in itens_vida_ativos:
                     itens_vida_ativos.remove(coracao)
 
+        if atirar == True:
+            if keys[K_j] and tempo_tiro >= intervalo_tiro:
+                tempo_tiro = 0
+                if direita:
+                    lista_tiros.append(
+                        Tiro(pos_x + 65, pos_y + 15, True)
+                    )
+                else:
+                    lista_tiros.append(
+                        Tiro(pos_x - 15, pos_y + 15, False)
+                    )
+
+
+            tiros_para_remover = []
+
+            for tiro in lista_tiros:
+                tiro.atualizar(dt)
+                tiro.desenhar(screen)
+                if tiro.fora_da_tela():
+                    tiros_para_remover.append(tiro)
+
+            for tiro in tiros_para_remover:
+                lista_tiros.remove(tiro)
+
         if tempo_decorrido > 180:
             if vitoria == False:
                 vit.play()
@@ -1208,5 +1299,7 @@ while running:
             if blur >= 250:
                 textoVitoria = fonteDerrota.render('MISSION PASSED', True, VERDE)
                 screen.blit(textoVitoria, (150,100))
+
+
 
     display.update()
