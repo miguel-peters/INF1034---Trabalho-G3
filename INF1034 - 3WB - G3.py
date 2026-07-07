@@ -25,7 +25,6 @@ atirar = False
 # -----BOSS-----
 
 velocidade_boss = 0.8
-boss_x = 900
 angulo_boss = 0
 velocidade_giro_boss = 0.08
 Rhand_y = 380
@@ -36,9 +35,21 @@ modo_ataque2 = False
 modo_ataque3 = False
 modo_rapido = False
 qtd_bats = 10
+lado_boss = random.choice(['direita', 'esquerda'])
+if lado_boss == 'direita':
+    boss_x = 900
+else:
+    boss_x = -400
 
 boss_vida_max = 100
 boss_vida = 100
+
+tempo_entre_ataques = 0
+ataque_em_andamento = False
+boss_x_destino = 480
+
+etapa_boss = 0  # 0: Escondido, 1: Entrando, 2: Atacando, 3: Fugindo
+timer_boss = 0
 
 def boss_tomar_dano(dano):
     global boss_vida # esse global serve para avisar pro codigo q e pra ele usar a vida do boss q esta fora dessa funçao
@@ -95,7 +106,7 @@ def resetar_jogo(estado):
     estado['explosoes_ativas'] = []
     estado['jumpscare_tocado'] = False
     estado['boss_x'] = 900
-    estado['boss_vida'] = 1000
+    estado['boss_vida'] = 100
     estado['boss_tocado'] = False
     estado['atirar'] = False
 
@@ -115,12 +126,15 @@ def resetar_jogo(estado):
     # recria os morcegos inimigos
     novos_bats = []
     for i in range(qtd_bats):
-        novos_bats.append(batNPC(800, 0, opcoes_de_cores_bat))
+        novos_bats.append(batNPC(800, 0, opcoes_de_cores_bat, lado_boss))
     estado['bando_de_bats'] = novos_bats
 
     # recria os tiros inimigos
     estado['lista'] = tiros()
-    estado['lista_boss'] = tiros_boss()
+    estado['lista_boss'] = tiros_boss('direita')
+    estado['lado_boss'] = 'direita'
+    estado['etapa_boss'] = 0
+    estado['timer_boss'] = 0
 # ---TELA DE LOGIN---
 
 # tela de início
@@ -197,10 +211,10 @@ try:
 except FileNotFoundError:
     pass
 
-top5.sort(key=lambda x: x[1], reverse=True)
+top5.sort(key=lambda x: x[1], reverse=False)
 
 while len(top5) < 5:
-    top5.append(("---", 0))
+    top5.append(("---", 9999))
 top5 = top5[:5]
 
 # ---SONS---
@@ -271,6 +285,7 @@ imagem_ceu = transform.scale(image.load("background/blue-with-stars.png"), (800,
 mapa_2 = transform.scale(image.load('background/Space Background2.png'), (800, 600))
 mapa_3 = transform.scale(image.load('background/Space Background3.png'), (800, 600))
 galaxia = transform.scale(image.load('background/estrelas.jpg'), (800, 600))
+fundo_67 = transform.scale(image.load('background/fundo_67.jpeg'), (800, 600))
 
 # tile de asteroide 
 a2 = transform.scale(image.load('background/asteroid-2.png'), (tile_size, tile_size))
@@ -556,23 +571,24 @@ for i in range(2):
 opcoes_de_cores_bat = [bat_67]
 
 class batNPC:
-    def __init__(self, limite_x, chao_y, opcoes_de_cores_bat):
-        #posição inicial na tela
-        self.x = random.randint(570, 600)
-        self.y = random.randint(240, 370)
-        # comeca andando para a esquerda (-2)
-        
-        self.velocidade_x = random.choice([-4,-3,-2])
-        self.velocidade_y = random.choice([1,2,3,4,-1,-2,-3,-4,0])
+    def __init__(self, limite_x, chao_y, opcoes_de_cores_bat, lado='direita'):
+            #posição inicial na tela
+            if lado == 'direita':
+                self.x = random.randint(570, 600)
+                self.y = random.randint(240, 370)
+                self.velocidade_x = random.choice([-4, -3, -2]) # voa para a esquerda
+            else: # se o boss estiver na esquerda
+                self.x = random.randint(60, 90) # nasce perto da mão esquerda do boss
+                self.y = random.randint(240, 370)
+                self.velocidade_x = random.choice([2, 3, 4]) # voa para a direita
+            
+            self.velocidade_y = random.choice([1,2,3,4,-1,-2,-3,-4,0])
 
+            self.minha_animacao = random.choice(opcoes_de_cores_bat)
+            self.frame_atual = random.randint(0,  len(self.minha_animacao) - 1)
+            self.tempo_animacao = 0
 
-        self.minha_animacao = random.choice(opcoes_de_cores_bat)
-        self.frame_atual = random.randint(0,  len(self.minha_animacao) - 1)
-        self.tempo_animacao = 0
-
-        
-
-        self.bat_hitbox = Rect(self.x, self.y, tam+7, tam+10)
+            self.bat_hitbox = Rect(self.x, self.y, tam+7, tam+10)
 
     def atualizar_e_desenhar(self, tela, dt, lista_animacao, mult_vel):
         #movimento
@@ -625,15 +641,19 @@ def tiros():
     lista_inimigo = []
     for i in range(8):
         x_inicial = 700
-        y_inicial = random.randint(50,550)
+        y_inicial = random.randint(0,600)
         lista_inimigo.append([x_inicial, y_inicial])
     return lista_inimigo
 
-def tiros_boss():
+def tiros_boss(lado='direita'):
     lista_inimigo = []
     for i in range(10):
-        x_inicial = random.randint(800, 1200)
-        y_inicial = random.randint(50,550)
+        if lado == 'direita':
+            x_inicial = random.randint(800, 1200) # Nasce fora pela direita
+        else:
+            x_inicial = random.randint(-400, -50) # Nasce fora pela esquerda
+            
+        y_inicial = random.randint(0,600)
         lista_inimigo.append([x_inicial, y_inicial])
     return lista_inimigo
 
@@ -707,6 +727,10 @@ while running:
                     boss_x = estado['boss_x']
                     boss_vida = estado['boss_vida']
                     bando_de_bats = estado['bando_de_bats']
+                    lista_boss = estado['lista_boss']
+                    lado_boss = estado['lado_boss']
+                    etapa_boss = estado['etapa_boss']
+                    timer_boss = estado['timer_boss']
                     modo_ataque = False
                     modo_ataque2 = False
                     modo_ataque3 = False
@@ -717,11 +741,7 @@ while running:
                     Lhand_y = 480
                     velocidade_mao = velocidade_giro_boss * 11.5
             
-        if valor_opacidade < 255:
-            valor_opacidade += 0.1
-            
-        sixseven.set_alpha(int(valor_opacidade))
-        screen.blit(sixseven, (75, 170))
+
         
         if ev.type == KEYDOWN:
             if tela_atual == 'inicio':
@@ -742,14 +762,19 @@ while running:
     if tela_atual == 'inicio':
         desenha_texto_sombra('SPACE', fonte_gta_titulo, AMARELO_GTA, centraliza_x('SPACE', fonte_gta_titulo), 100)
         desenha_texto_sombra('WARS', fonte_gta_titulo, BRANCO, centraliza_x('WARS', fonte_gta_titulo), 200)
-        
+        if valor_opacidade < 255:
+            valor_opacidade += 0.03
+            
+        sixseven.set_alpha(int(valor_opacidade))
+        screen.blit(sixseven, (75, 170))
         for i, opt in enumerate(opcoes):
             y = 400 + (i * 50)
             cor = AMARELO_GTA if i == opcao_selecionada else BRANCO
             desenha_texto_sombra(opt, fonte_menu, cor, centraliza_x(opt, fonte_menu), y)
 
     if tela_atual == 'login':
-        tela_inicio()          
+        tela_inicio()
+                  
     elif tela_atual == 'jogo':
 
         if derrota == False and vitoria == False:
@@ -791,7 +816,7 @@ while running:
         if keys[K_u] and modo_g:
             modo_u = True
         if keys[K_i] and modo_u:
-            top5 = [("---", 0), ("---", 0), ("---", 0), ("---", 0), ("---", 0)]
+            top5 = [("---", 9999), ("---", 9999), ("---", 9999), ("---", 9999), ("---", 9999)]
             with open("ranking.txt", "w") as arquivo:
                 for jogador, score in top5:
                     arquivo.write(f"{jogador},{score}\n")
@@ -799,7 +824,20 @@ while running:
         # ---MOVIMENTAÇÃO + ANIMAÇÃO + HITBOXES-----
 
         #nave principal
-
+        # if tempo_decorrido >= 120:
+        #     if keys[K_a] and life!=0 and pos_x > 0 and vitoria == False:
+        #         esquerda = True
+        #         direita = False
+        #         pos_x -= 0.45*dt
+        #     elif keys[K_d] and life!=0 and pos_x < 720 and vitoria == False:
+        #         direita = True
+        #         esquerda = False
+        #         pos_x += 0.45*dt
+        #     if keys[K_w] and life!=0 and pos_y > 0 and vitoria == False:
+        #         pos_y -= 0.45*dt
+        #     elif keys[K_s] and life!=0 and pos_y < 560 and vitoria == False:
+        #         pos_y += 0.45*dt            
+        # else:
         if keys[K_a] and life!=0 and pos_x > 0 and vitoria == False:
             esquerda = True
             direita = False
@@ -808,7 +846,6 @@ while running:
             direita = True
             esquerda = False
             pos_x += 0.3*dt
-        
         if keys[K_w] and life!=0 and pos_y > 0 and vitoria == False:
             pos_y -= 0.3*dt
         elif keys[K_s] and life!=0 and pos_y < 560 and vitoria == False:
@@ -845,19 +882,23 @@ while running:
         if tempo_decorrido < 60 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
             screen.blit(imagem_ceu, (0, 0))
 
-        if 60 < tempo_decorrido < 120 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
-            screen.blit(imagem_ceu, (0, 0))
+        if 60 < tempo_decorrido < 115:
+            screen.blit(mapa_2, (0, 0))
 
-        # if 62 > tempo_decorrido >= 60 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
-        #     screen.blit(mapa_2, (0,0))
+        if 60 < tempo_decorrido < 120 and ((tempo_atual-tempo_inicial)//500)%2 == 0:
+            screen.blit(mapa_2, (0, 0))
+
+        if 120 < tempo_decorrido :
+            screen.blit(fundo_67, (0, 0))
 
         if tempo_decorrido < 60:
             tocar_musica("sons/fase_fácil.mp3")
-        elif tempo_decorrido < 120:
-            screen.blit(mapa_2, (0,0))
+        elif tempo_decorrido < 115:
             tocar_musica("sons/fase_media_f.mp3")
         elif tempo_decorrido >= 120 and vitoria == False:
             tocar_musica("sons/67boss.mp3")
+        
+ 
 
 
         #inimigos
@@ -867,7 +908,7 @@ while running:
         #vidas
         
         #asteroides
-        if  120 > tempo_decorrido > 60 and derrota == False and vitoria == False:
+        if  116 > tempo_decorrido > 60 and derrota == False and vitoria == False:
             for ast in lista_asteroides:
                 ast[0] -= vel_ast 
                 
@@ -928,9 +969,68 @@ while running:
 
         
         #sixseven boss
-        if  120 < tempo_decorrido and derrota == False:
-            if boss_x > 480: #480
-                boss_x -= velocidade_boss*10
+        if  120 < tempo_decorrido and derrota == False and vitoria == False:
+            if etapa_boss == 0:
+                timer_boss += dt
+                if timer_boss > 2000:
+                    lado_boss = random.choice(['direita', 'esquerda'])
+                    if lado_boss == 'direita':
+                        boss_x = 900
+                        boss_x_destino = 480
+                    else:
+                        boss_x = -400
+                        boss_x_destino = 40
+                    etapa_boss = 1
+                    timer_boss = 0
+            elif etapa_boss == 1:
+                if boss_x > boss_x_destino:
+                    boss_x -= velocidade_boss * 10
+                elif boss_x < boss_x_destino:
+                    boss_x += velocidade_boss * 10
+                if abs(boss_x - boss_x_destino) < 15:
+                    etapa_boss = 2
+                    timer_boss = 0
+                    
+                    bando_de_bats = [] 
+                    for i in range(qtd_bats):
+                        bando_de_bats.append(batNPC(0, 0, opcoes_de_cores_bat, lado_boss))
+                    lista_boss = tiros_boss(lado_boss)
+                    
+                    qual_ataque = random.choice([1, 2])
+                    if qual_ataque == 1:
+                        modo_ataque = True
+                    else:
+                        modo_ataque2 = True
+                        Rhand_y = 120
+                        Lhand_y = 140
+                    random.choice(gritos_boss).play()
+            elif etapa_boss == 2:
+                timer_boss += dt
+                if (modo_ataque or modo_ataque2) and not modo_rapido:
+                    velocidade_mao = 20
+                    velocidade_giro_boss = 4
+                    modo_rapido = True
+                if timer_boss > 4000:
+                    modo_ataque = False
+                    modo_ataque2 = False
+                    modo_ataque3 = False
+                    modo_rapido = False
+                    angulo_boss = 0
+                    Rhand_y = 420
+                    Lhand_y = 440
+                    velocidade_giro_boss = 0.08
+                    velocidade_mao = velocidade_giro_boss * 11.5
+                    etapa_boss = 3 #
+                    timer_boss = 0
+            elif etapa_boss == 3:
+                if lado_boss == 'direita':
+                    boss_x += velocidade_boss * 10
+                    if boss_x > 900:
+                        etapa_boss = 0 
+                else:
+                    boss_x -= velocidade_boss * 10
+                    if boss_x < -400:
+                        etapa_boss = 0
             boss_y = -30
             angulo_boss += velocidade_giro_boss
             if modo_ataque == False and modo_ataque2 == False and modo_ataque3 == False:
@@ -990,48 +1090,6 @@ while running:
             hitboxes_inimigas.append(Lhand_hitbox3)
             hitboxes_inimigas.append(Lhand_hitbox4)
             hitboxes_inimigas.append(Lhand_hitbox5)
-            def ataque(x):
-                global modo_ataque, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats
-                if (x+1>tempo_decorrido >= x) and modo_ataque == False:
-                    if modo_ataque == False:
-                        grito_sorteado = random.choice(gritos_boss)
-                        grito_sorteado.play()
-                    modo_ataque = True
-            
-            def end_ataque(y):
-                global modo_ataque, modo_ataque2, modo_ataque3, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats, lista_boss
-                if (y+1>tempo_decorrido >= y) and modo_rapido == True:
-                    modo_ataque = False
-                    modo_ataque2 = False
-                    modo_ataque3 = False
-                    angulo_boss = 0
-                    Rhand_y = 420
-                    Lhand_y = 440
-                    velocidade_giro_boss = 0.08
-                    velocidade_mao = velocidade_giro_boss*11.5
-                    bando_de_bats = [] # limpa a lista principal
-                    for i in range(qtd_bats):
-                        bando_de_bats.append(batNPC(Lhand_x, Lhand_y, opcoes_de_cores_bat))
-                    lista_boss = tiros_boss()
-                    modo_rapido = False
-            def ataque2(x):
-                global modo_ataque2, modo_rapido, velocidade_mao, velocidade_giro_boss, angulo_boss, Rhand_y, Lhand_y, bando_de_bats
-                if (x+1>tempo_decorrido >= x) and modo_ataque2 == False:
-                    if modo_ataque2 == False:
-                        grito_sorteado = random.choice(gritos_boss)
-                        grito_sorteado.play()
-                        Rhand_y = 120
-                        Lhand_y = 140
-                    modo_ataque2 = True
-            # ataque(5)
-            ataque2(125)
-            ataque(133)
-            # ataque2(13)
-            # ataque(21)]
-            ataque2(171)
-            end_ataque(129)
-            end_ataque(137)
-            end_ataque(175)
             if modo_ataque == True or modo_ataque3 == True:
                 if Lhand_y >= 480 or Lhand_y <= 380:
                     velocidade_mao = velocidade_mao * -1
@@ -1049,16 +1107,26 @@ while running:
                     draw.rect(screen, (255, 0, 0), (bat.bat_hitbox), 2)
             if modo_ataque2 == True and modo_rapido == True:
                 for pos in lista_boss:
-                    pos[0] = pos[0] - 0.8 * dt
+                    if lado_boss == 'direita':
+                        pos[0] = pos[0] - 0.8 * dt
+                        imagem_tiro = shot_imagem[current_frame_S]
+                    else:
+                        pos[0] = pos[0] + 0.8 * dt
+                        imagem_tiro = transform.flip(shot_imagem[current_frame_S], True, False)
                     
-                    screen.blit(shot_imagem[current_frame_S], (pos[0], pos[1]), (0, 0, 45, 15))
+                    screen.blit(imagem_tiro, (pos[0], pos[1]), (0, 0, 45, 15))
                     
                     laser_hitbox = Rect(pos[0], pos[1], 45, 15)
                     hitboxes_inimigas.append(laser_hitbox)
                     draw.rect(screen, (255, 0, 0), (laser_hitbox), 2)
-                    if pos[0] < -100:
+                    
+                    if lado_boss == 'direita' and pos[0] < -100:
                         pos[0] = 800
                         pos[1] = random.randint(0, 600)
+                    elif lado_boss == 'esquerda' and pos[0] > 900:
+                        pos[0] = -100
+                        pos[1] = random.randint(0, 600)
+                        
                 anim_time_S += dt
                 anim_time_sec_S = anim_time_S / 1000
 
@@ -1105,15 +1173,6 @@ while running:
 
             modo_invencivel = True
             tempo_invencivel = 3000
-        
-        if vitoria == True:
-            top5.append((nome, tempo_decorrido))
-            top5.sort(key=lambda x: x[1], reverse=False)
-            top5 = top5[:5]
-                
-            with open("ranking.txt", "w") as arquivo:
-                for jogador, score in top5:
-                    arquivo.write(f"{jogador},{score}\n")
         
 
 
@@ -1180,14 +1239,15 @@ while running:
         screen.blit(texto2, (25, 440))
         screen.blit(texto3, (25, 460))
         screen.blit(texto4, (25, 480))
-        screen.blit(texto5, (25, 500))
+        if tempo_decorrido >= 115:
+            screen.blit(texto5, (25, 500))
 
         texto = fonte.render(f'Tempo: {tempo_decorrido}s', True, (255,255,255))
         screen.blit(texto, (30,100))
 
 
     
-        if tempo_decorrido >= 0:
+        if tempo_decorrido >= 120 and derrota == False and vitoria == False:
             draw.rect(screen, (102, 51, 0), (230, 20, 200, 70), border_radius=20)
             sixseven = transform.scale(boss, (25, 50))
             barra_largura_atual = boss_vida * 1.5
@@ -1218,17 +1278,14 @@ while running:
         
         if derrota == True:
             screen.blit(blur_surface, (0, 0))
-            texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
-            screen.blit(texto_titulo_top, (550, 120))
-            for i, (jogador, score) in enumerate(top5):
-                texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
-                screen.blit(texto_score, (550, 140 + (i * 25)))
             textoDerrota = fonteDerrota.render('WASTED', True, VERMELHO)
             screen.blit(textoDerrota, (200,100))
             draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
             texto6 = fonte.render('Jogar de novo', True, (0,0,0))
             screen.blit(texto6, (310,310))
     
+
+
         if derrota == False:
             coracoes_para_remover = []
 
@@ -1253,7 +1310,7 @@ while running:
                 if coracao in itens_vida_ativos:
                     itens_vida_ativos.remove(coracao)
 
-        if atirar == True:
+        if atirar == True and derrota == False and vitoria == False:
             if keys[K_j] and tempo_tiro >= intervalo_tiro:
                 tempo_tiro = 0
                 if direita:
@@ -1290,16 +1347,45 @@ while running:
 
         if boss_vida <= 0:
             if vitoria == False:
-                vit.play()
                 vitoria = True
-            pos_x += 0.3*dt
-            blur += 0.05*dt
-            blur_surface.set_alpha(blur) # Valor de opacidade (0 = invisível, 255 = totalmente opaco)
+
+                top5.append((nome, tempo_decorrido))
+                top5.sort(key=lambda x: x[1], reverse=False)
+                top5 = top5[:5]
+
+                try:
+                    with open("ranking.txt", "w") as arquivo:
+                        for jogador, score in top5:
+                            arquivo.write(f"{jogador},{score}\n")                
+                except:
+                    pass
+                
+                vit.play()
+            
+            pos_x += 0.3 * dt
+            
+            if blur < 250:
+                blur += 1
+            blur_surface.set_alpha(blur) 
             screen.blit(blur_surface, (0, 0))
+            
             if blur >= 250:
                 textoVitoria = fonteDerrota.render('MISSION PASSED', True, VERDE)
                 screen.blit(textoVitoria, (150,100))
+                draw.rect(screen, (255,255,255), (300,300,150,50), border_radius = 20)
+                texto_botao = fonte.render('Jogar de novo', True, (0,0,0))
+                screen.blit(texto_botao, (310,310))
 
-
+        if derrota == True or vitoria == True:
+            texto_titulo_top = fonte.render('Top 5:', True, (255, 255, 0))
+            screen.blit(texto_titulo_top, (550, 200)) 
+            
+            for i, (jogador, score) in enumerate(top5):
+                if jogador == "---":
+                    texto_score = fonte.render(f'{i+1}º - ---', True, (200, 200, 200))
+                else:
+                    texto_score = fonte.render(f'{i+1}º - {jogador} - {score}s', True, (200, 200, 200))
+                
+                screen.blit(texto_score, (550, 240 + (i * 25)))
 
     display.update()
