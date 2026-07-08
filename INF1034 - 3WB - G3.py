@@ -1008,10 +1008,10 @@ while running:
             Rhand_x = boss_x-20
             Rhand_y += -velocidade_mao
             head_hitbox1 = Rect(boss_x+70, boss_y+80, 170, 160)
-            draw.rect(screen, (255, 255, 255), head_hitbox1, 2)
+            # draw.rect(screen, (255, 255, 255), head_hitbox1, 2)
             hitboxes_inimigas.append(head_hitbox1)
             Head_hitbox2 = Rect(boss_x+100, boss_y+240, 110, 350)
-            draw.rect(screen, (255, 255, 255), Head_hitbox2, 2)
+            # draw.rect(screen, (255, 255, 255), Head_hitbox2, 2)
             hitboxes_inimigas.append(Head_hitbox2)
             if modo_ataque2 == False:
                 Rhand_y = max(380, min(Rhand_y, 480))
@@ -1021,11 +1021,11 @@ while running:
             Rhand_hitbox3 = Rect(Rhand_x, Rhand_y, 90, 45)
             Rhand_hitbox4 = Rect(Rhand_x+23, Rhand_y+53, 18, 50)
             Rhand_hitbox5 = Rect(Rhand_x+120, Rhand_y+80, 30, 30)
-            draw.rect(screen, (255, 255, 255), Rhand_hitbox1, 2)
-            draw.rect(screen, (255, 255, 255), Rhand_hitbox2, 2)
-            draw.rect(screen, (255, 255, 255), Rhand_hitbox3, 2)
-            draw.rect(screen, (255, 255, 255), Rhand_hitbox4, 2)
-            draw.rect(screen, (255, 255, 255), Rhand_hitbox5, 2)
+            # draw.rect(screen, (255, 255, 255), Rhand_hitbox1, 2)
+            # draw.rect(screen, (255, 255, 255), Rhand_hitbox2, 2)
+            # draw.rect(screen, (255, 255, 255), Rhand_hitbox3, 2)
+            # draw.rect(screen, (255, 255, 255), Rhand_hitbox4, 2)
+            # draw.rect(screen, (255, 255, 255), Rhand_hitbox5, 2)
             hitboxes_inimigas.append(Rhand_hitbox1)
             hitboxes_inimigas.append(Rhand_hitbox2)
             hitboxes_inimigas.append(Rhand_hitbox3)
@@ -1041,11 +1041,11 @@ while running:
             Lhand_hitbox3 = Rect(Lhand_x+60, Lhand_y, 90, 45)
             Lhand_hitbox4 = Rect(Lhand_x+108, Lhand_y+53, 18, 50)
             Lhand_hitbox5 = Rect(Lhand_x, Lhand_y+80, 30, 30)
-            draw.rect(screen, (255, 255, 255), Lhand_hitbox1, 2)
-            draw.rect(screen, (255, 255, 255), Lhand_hitbox2, 2)
-            draw.rect(screen, (255, 255, 255), Lhand_hitbox3, 2)
-            draw.rect(screen, (255, 255, 255), Lhand_hitbox4, 2)
-            draw.rect(screen, (255, 255, 255), Lhand_hitbox5, 2)
+            # draw.rect(screen, (255, 255, 255), Lhand_hitbox1, 2)
+            # draw.rect(screen, (255, 255, 255), Lhand_hitbox2, 2)
+            # draw.rect(screen, (255, 255, 255), Lhand_hitbox3, 2)
+            # draw.rect(screen, (255, 255, 255), Lhand_hitbox4, 2)
+            # draw.rect(screen, (255, 255, 255), Lhand_hitbox5, 2)
             hitboxes_inimigas.append(Lhand_hitbox1)
             hitboxes_inimigas.append(Lhand_hitbox2)
             hitboxes_inimigas.append(Lhand_hitbox3)
@@ -1065,7 +1065,7 @@ while running:
                 for bat in bando_de_bats:
                     bat.atualizar_e_desenhar(screen, dt, bat.minha_animacao, aumento_vel)
                     hitboxes_inimigas.append(bat.bat_hitbox)
-                    draw.rect(screen, (255, 0, 0), (bat.bat_hitbox), 2)
+                    # draw.rect(screen, (255, 0, 0), (bat.bat_hitbox), 2)
             if modo_ataque2 == True and modo_rapido == True:
                 for pos in lista_boss:
                     if lado_boss == 'direita':
@@ -1079,7 +1079,7 @@ while running:
                     
                     laser_hitbox = Rect(pos[0], pos[1], 45, 15)
                     hitboxes_inimigas.append(laser_hitbox)
-                    draw.rect(screen, (255, 0, 0), (laser_hitbox), 2)
+                    # draw.rect(screen, (255, 0, 0), (laser_hitbox), 2)
                     
                     if lado_boss == 'direita' and pos[0] < -100:
                         pos[0] = 800
